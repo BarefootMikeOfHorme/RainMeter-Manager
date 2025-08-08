@@ -1,0 +1,8 @@
+This file represents where the Chrome.png icon would be placed.
+For actual use, replace this with a proper 80x80 PNG icon image.
+
+To get icons:
+1. Download from IconArchive, Flaticon, or similar icon sites
+2. Resize to 80x80 pixels
+3. Save as PNG format
+4. Name appropriately (Chrome.png, Spotify.png, etc.)

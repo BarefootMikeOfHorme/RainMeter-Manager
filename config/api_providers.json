@@ -1,0 +1,377 @@
+{
+  "api_providers": {
+    "metadata": {
+      "config_version": "1.0",
+      "last_updated": "2025-08-08",
+      "phase": "Phase 1 Complete",
+      "security_implementation": "AES-GCM + DPAPI"
+    },
+    "weather_providers": {
+      "openweathermap": {
+        "name": "OpenWeatherMap",
+        "description": "Comprehensive weather data API",
+        "api_version": "2.5",
+        "base_url": "https://api.openweathermap.org/data/2.5/",
+        "endpoints": {
+          "current_weather": "weather?q={city}&appid={api_key}&units={units}",
+          "forecast": "forecast?q={city}&appid={api_key}&units={units}&cnt={count}",
+          "radar": "https://tile.openweathermap.org/map/{layer}/{z}/{x}/{y}.png?appid={api_key}"
+        },
+        "authentication": {
+          "type": "api_key",
+          "parameter": "appid",
+          "location": "query_string",
+          "required": true,
+          "storage": "encrypted_dpapi"
+        },
+        "rate_limits": {
+          "free_tier": {
+            "requests_per_day": 1000,
+            "requests_per_minute": 60,
+            "burst_allowed": 5
+          },
+          "paid_tiers": {
+            "startup": "60 calls/minute, 1,000,000/month",
+            "developer": "60 calls/minute, 3,000,000/month",
+            "professional": "60 calls/minute, 10,000,000/month"
+          }
+        },
+        "legal": {
+          "license": "Custom API Terms",
+          "terms_url": "https://openweathermap.org/terms",
+          "attribution_required": true,
+          "attribution_text": "Weather data provided by OpenWeatherMap",
+          "commercial_use": "paid_subscription_required",
+          "personal_use": "free_tier_available"
+        },
+        "security": {
+          "https_required": true,
+          "domain_validation": true,
+          "whitelist_domains": [
+            "api.openweathermap.org",
+            "tile.openweathermap.org"
+          ],
+          "certificate_pinning": false,
+          "timeout_ms": 10000,
+          "retry_attempts": 3,
+          "exponential_backoff": true
+        },
+        "data_formats": {
+          "response_format": "json",
+          "encoding": "utf-8",
+          "supported_units": ["metric", "imperial", "kelvin"]
+        },
+        "error_handling": {
+          "common_errors": {
+            "401": "Invalid API key",
+            "404": "Location not found", 
+            "429": "Rate limit exceeded",
+            "500": "Server error"
+          },
+          "fallback_behavior": "use_cached_data"
+        }
+      },
+      "weathergov": {
+        "name": "Weather.gov (NOAA)",
+        "description": "US National Weather Service API",
+        "api_version": "1.0",
+        "base_url": "https://api.weather.gov/",
+        "endpoints": {
+          "points": "points/{lat},{lon}",
+          "forecast": "gridpoints/{office}/{gridX},{gridY}/forecast",
+          "alerts": "alerts?point={lat},{lon}"
+        },
+        "authentication": {
+          "type": "none",
+          "required": false,
+          "user_agent_required": true,
+          "user_agent": "RainmeterManager/1.0 (contact@example.com)"
+        },
+        "rate_limits": {
+          "requests_per_minute": 300,
+          "requests_per_hour": 1800,
+          "reasonable_use_policy": true
+        },
+        "legal": {
+          "license": "Public Domain",
+          "attribution_required": false,
+          "commercial_use": "allowed",
+          "coverage": "United States only"
+        },
+        "security": {
+          "https_required": true,
+          "domain_validation": true,
+          "whitelist_domains": ["api.weather.gov"],
+          "timeout_ms": 8000
+        }
+      }
+    },
+    "financial_providers": {
+      "yahoo_finance": {
+        "name": "Yahoo Finance",
+        "description": "Stock and financial market data",
+        "api_version": "v8",
+        "base_url": "https://query1.finance.yahoo.com/v8/finance/",
+        "endpoints": {
+          "chart": "chart/{symbol}?interval={interval}&range={range}",
+          "quote": "quote?symbols={symbols}"
+        },
+        "authentication": {
+          "type": "none",
+          "required": false
+        },
+        "rate_limits": {
+          "requests_per_hour": 200,
+          "requests_per_minute": 10,
+          "burst_limit": 5,
+          "enforcement": "soft_limit"
+        },
+        "legal": {
+          "license": "Personal Use Only",
+          "terms_url": "https://legal.yahoo.com/us/en/yahoo/terms/product-atos/apiforydn/index.html",
+          "attribution_required": false,
+          "commercial_use": "prohibited",
+          "redistribution": "prohibited",
+          "data_retention_limit": "temporary_cache_only"
+        },
+        "security": {
+          "https_required": true,
+          "domain_validation": true,
+          "whitelist_domains": [
+            "query1.finance.yahoo.com",
+            "query2.finance.yahoo.com"
+          ],
+          "timeout_ms": 8000,
+          "retry_attempts": 2
+        },
+        "data_formats": {
+          "response_format": "json",
+          "supported_intervals": ["1m", "2m", "5m", "15m", "30m", "60m", "90m", "1h", "1d", "5d", "1wk", "1mo", "3mo"],
+          "supported_ranges": ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"]
+        }
+      },
+      "alphavantage": {
+        "name": "Alpha Vantage",
+        "description": "Premium financial and economic data",
+        "api_version": "1.0",
+        "base_url": "https://www.alphavantage.co/query",
+        "endpoints": {
+          "intraday": "?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval={interval}&apikey={api_key}",
+          "daily": "?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}",
+          "forex": "?function=FX_RATE&from_currency={from}&to_currency={to}&apikey={api_key}"
+        },
+        "authentication": {
+          "type": "api_key",
+          "parameter": "apikey", 
+          "location": "query_string",
+          "required": true,
+          "free_key_available": true,
+          "storage": "encrypted_dpapi"
+        },
+        "rate_limits": {
+          "free_tier": {
+            "requests_per_minute": 5,
+            "requests_per_day": 500
+          },
+          "premium_tiers": {
+            "basic": "75 requests/minute",
+            "premium": "300 requests/minute",
+            "enterprise": "600 requests/minute"
+          }
+        },
+        "legal": {
+          "license": "Custom API Terms",
+          "terms_url": "https://www.alphavantage.co/terms-of-service/",
+          "attribution_required": true,
+          "attribution_text": "Financial data provided by Alpha Vantage",
+          "commercial_use": "allowed_with_subscription"
+        },
+        "security": {
+          "https_required": true,
+          "domain_validation": true,
+          "whitelist_domains": ["www.alphavantage.co"],
+          "timeout_ms": 15000
+        }
+      }
+    },
+    "cryptocurrency_providers": {
+      "coingecko": {
+        "name": "CoinGecko",
+        "description": "Cryptocurrency market data",
+        "api_version": "v3",
+        "base_url": "https://api.coingecko.com/api/v3/",
+        "endpoints": {
+          "coins_list": "coins/list",
+          "simple_price": "simple/price?ids={ids}&vs_currencies={currencies}",
+          "coin_data": "coins/{id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false"
+        },
+        "authentication": {
+          "type": "api_key_optional",
+          "parameter": "x_cg_demo_api_key",
+          "location": "header",
+          "required": false,
+          "free_tier_available": true,
+          "storage": "encrypted_dpapi"
+        },
+        "rate_limits": {
+          "free_tier": {
+            "requests_per_minute": 50,
+            "monthly_limit": 10000
+          },
+          "paid_tiers": {
+            "analyst": "500 requests/minute",
+            "pro": "500 requests/minute", 
+            "enterprise": "1000 requests/minute"
+          }
+        },
+        "legal": {
+          "license": "Custom API Terms",
+          "terms_url": "https://www.coingecko.com/en/api_terms",
+          "attribution_required": true,
+          "attribution_text": "Cryptocurrency data provided by CoinGecko",
+          "commercial_use": "allowed"
+        },
+        "security": {
+          "https_required": true,
+          "domain_validation": true,
+          "whitelist_domains": ["api.coingecko.com"],
+          "timeout_ms": 10000,
+          "retry_attempts": 3
+        }
+      },
+      "coinmarketcap": {
+        "name": "CoinMarketCap",
+        "description": "Cryptocurrency market data and rankings",
+        "api_version": "v1",
+        "base_url": "https://pro-api.coinmarketcap.com/v1/",
+        "endpoints": {
+          "listings": "cryptocurrency/listings/latest",
+          "quotes": "cryptocurrency/quotes/latest?symbol={symbols}",
+          "metadata": "cryptocurrency/info?symbol={symbols}"
+        },
+        "authentication": {
+          "type": "api_key",
+          "parameter": "X-CMC_PRO_API_KEY",
+          "location": "header",
+          "required": true,
+          "free_tier_available": true,
+          "storage": "encrypted_dpapi"
+        },
+        "rate_limits": {
+          "free_tier": {
+            "requests_per_day": 333,
+            "requests_per_month": 10000
+          },
+          "paid_tiers": {
+            "hobbyist": "10000 calls/month",
+            "startup": "100000 calls/month",
+            "standard": "500000 calls/month"
+          }
+        },
+        "legal": {
+          "license": "Custom API Terms",
+          "terms_url": "https://coinmarketcap.com/api/terms/",
+          "attribution_required": true,
+          "attribution_text": "Data provided by CoinMarketCap",
+          "commercial_use": "requires_commercial_license"
+        },
+        "security": {
+          "https_required": true,
+          "domain_validation": true,
+          "whitelist_domains": ["pro-api.coinmarketcap.com"],
+          "timeout_ms": 12000
+        }
+      }
+    },
+    "content_providers": {
+      "rainmeterui": {
+        "name": "RainmeterUI",
+        "description": "Rainmeter skin and theme repository",
+        "base_url": "https://rainmeterui.com/",
+        "endpoints": {
+          "category_themes": "tag/themes/",
+          "category_visualizer": "tag/visualizer/",
+          "category_time_date": "tag/time-date/",
+          "category_system": "tag/system-monitoring/",
+          "category_weather": "tag/weather/"
+        },
+        "authentication": {
+          "type": "none",
+          "required": false
+        },
+        "rate_limits": {
+          "requests_per_minute": 30,
+          "requests_per_hour": 500,
+          "respectful_crawling": true
+        },
+        "legal": {
+          "license": "Website Content Terms",
+          "robots_txt_compliance": true,
+          "attribution_required": false,
+          "scraping_allowed": "robots_txt_compliant"
+        },
+        "security": {
+          "https_required": true,
+          "domain_validation": true,
+          "whitelist_domains": ["rainmeterui.com"],
+          "timeout_ms": 15000,
+          "user_agent": "RainmeterManager/1.0"
+        }
+      }
+    },
+    "security_configuration": {
+      "global_settings": {
+        "default_timeout_ms": 10000,
+        "max_retries": 3,
+        "exponential_backoff_base": 2,
+        "user_agent": "RainmeterManager/1.0 (+https://github.com/user/RainmeterManager)",
+        "https_only": true,
+        "certificate_validation": true,
+        "follow_redirects": true,
+        "max_redirects": 5
+      },
+      "api_key_management": {
+        "encryption": "AES-GCM",
+        "storage": "Windows DPAPI",
+        "key_rotation": false,
+        "env_var_fallback": true,
+        "validation_on_startup": true,
+        "masked_in_logs": true
+      },
+      "domain_security": {
+        "whitelist_enforcement": true,
+        "dns_validation": true,
+        "certificate_pinning": false,
+        "content_type_validation": true,
+        "max_response_size": "50MB",
+        "blocked_file_extensions": [".exe", ".bat", ".cmd", ".scr", ".com", ".pif"]
+      },
+      "rate_limiting": {
+        "implementation": "token_bucket",
+        "global_rate_limit": "1000 requests/hour",
+        "per_provider_tracking": true,
+        "burst_protection": true,
+        "backoff_on_rate_limit": true
+      }
+    },
+    "fallback_configuration": {
+      "cache_settings": {
+        "default_cache_duration": 300000,
+        "max_cache_size": "100MB",
+        "cache_encryption": true,
+        "offline_mode": true
+      },
+      "error_responses": {
+        "network_error": "Using cached data",
+        "api_rate_limit": "Waiting for rate limit reset",
+        "authentication_error": "Check API key configuration",
+        "service_unavailable": "Service temporarily unavailable"
+      },
+      "graceful_degradation": {
+        "weather_widget": "Show last known weather with timestamp",
+        "stock_ticker": "Show cached prices with delay indicator", 
+        "crypto_prices": "Display 'Price update pending' message"
+      }
+    }
+  }
+}

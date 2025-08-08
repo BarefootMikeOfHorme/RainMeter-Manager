@@ -1,0 +1,399 @@
+{
+  "dependencies": {
+    "metadata": {
+      "project": "RainmeterManager",
+      "version": "1.0.0",
+      "target_platform": "Windows 10+",
+      "architecture": ["x64", "x86"],
+      "last_updated": "2025-08-08",
+      "phase": "Phase 1 Complete - Security Framework Implemented"
+    },
+    "system_requirements": {
+      "operating_system": {
+        "name": "Windows",
+        "minimum_version": "10.0.19041",
+        "recommended_version": "11.0.22000",
+        "architecture": ["x64", "x86"],
+        "features_required": [
+          "Windows Subsystem for Applications",
+          "DirectX 11 or later",
+          "Windows Graphics Driver Model (WDDM) 2.0+"
+        ]
+      },
+      "hardware": {
+        "minimum": {
+          "ram": "4GB",
+          "storage": "100MB free space",
+          "graphics": "DirectX 11 compatible",
+          "network": "Internet connection for data feeds"
+        },
+        "recommended": {
+          "ram": "8GB or more",
+          "storage": "500MB free space",
+          "graphics": "Dedicated GPU with OpenGL 3.3+",
+          "network": "Broadband internet connection"
+        }
+      }
+    },
+    "native_dependencies": {
+      "windows_sdk_libraries": {
+        "description": "Core Windows API libraries",
+        "distribution": "system_provided",
+        "libraries": [
+          {
+            "name": "user32.dll",
+            "purpose": "Windows user interface functions",
+            "minimum_version": "10.0.19041.0",
+            "critical": true
+          },
+          {
+            "name": "gdi32.dll", 
+            "purpose": "Graphics device interface",
+            "minimum_version": "10.0.19041.0",
+            "critical": true
+          },
+          {
+            "name": "comctl32.dll",
+            "purpose": "Common controls library",
+            "minimum_version": "6.0.0.0",
+            "critical": true
+          },
+          {
+            "name": "shell32.dll",
+            "purpose": "Windows shell functionality",
+            "minimum_version": "10.0.19041.0",
+            "critical": true
+          },
+          {
+            "name": "shlwapi.dll",
+            "purpose": "Shell light-weight API",
+            "minimum_version": "10.0.19041.0",
+            "critical": true
+          },
+          {
+            "name": "comdlg32.dll",
+            "purpose": "Common dialog boxes",
+            "minimum_version": "10.0.19041.0",
+            "critical": false
+          },
+          {
+            "name": "ole32.dll",
+            "purpose": "Object linking and embedding",
+            "minimum_version": "10.0.19041.0",
+            "critical": true
+          },
+          {
+            "name": "advapi32.dll",
+            "purpose": "Advanced Windows API",
+            "minimum_version": "10.0.19041.0",
+            "critical": true
+          },
+          {
+            "name": "wininet.dll",
+            "purpose": "Internet API functions",
+            "minimum_version": "11.0.22000.0",
+            "critical": true
+          }
+        ]
+      },
+      "security_libraries": {
+        "description": "Phase 1 Security Framework Dependencies",
+        "distribution": "system_provided",
+        "implemented_in_phase": 1,
+        "libraries": [
+          {
+            "name": "bcrypt.dll",
+            "purpose": "Windows CNG cryptographic primitives (AES-GCM encryption)",
+            "minimum_version": "10.0.19041.0",
+            "critical": true,
+            "features_used": [
+              "BCryptOpenAlgorithmProvider",
+              "BCryptGenerateSymmetricKey", 
+              "BCryptEncrypt",
+              "BCryptDecrypt",
+              "AES-GCM mode"
+            ]
+          },
+          {
+            "name": "wintrust.dll",
+            "purpose": "Code signature verification",
+            "minimum_version": "10.0.19041.0",
+            "critical": true,
+            "features_used": [
+              "WinVerifyTrust",
+              "WINTRUST_ACTION_GENERIC_VERIFY_V2",
+              "Certificate chain validation"
+            ]
+          },
+          {
+            "name": "crypt32.dll",
+            "purpose": "Cryptographic API and certificate functions",
+            "minimum_version": "10.0.19041.0", 
+            "critical": true,
+            "features_used": [
+              "CryptStringToBinaryA",
+              "CryptBinaryToStringA", 
+              "Certificate validation",
+              "DPAPI integration"
+            ]
+          },
+          {
+            "name": "dbghelp.dll",
+            "purpose": "Debug help library for crash handling",
+            "minimum_version": "10.0.19041.0",
+            "critical": true,
+            "features_used": [
+              "StackWalk64",
+              "SymInitialize",
+              "SymGetSymFromAddr64"
+            ]
+          },
+          {
+            "name": "version.dll",
+            "purpose": "Version information API",
+            "minimum_version": "10.0.19041.0",
+            "critical": true,
+            "features_used": [
+              "GetFileVersionInfoSize",
+              "GetFileVersionInfo",
+              "VerQueryValue"
+            ]
+          }
+        ]
+      },
+      "visual_cpp_runtime": {
+        "description": "Microsoft Visual C++ Redistributable",
+        "distribution": "redistributable_package",
+        "critical": true,
+        "version": "2022 (14.30+)",
+        "download_url": "https://aka.ms/vs/17/release/vc_redist.x64.exe",
+        "x86_download_url": "https://aka.ms/vs/17/release/vc_redist.x86.exe",
+        "detection_method": "registry_check",
+        "registry_keys": [
+          "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\X64",
+          "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\X64"
+        ]
+      }
+    },
+    "third_party_dependencies": {
+      "optional_graphics": {
+        "skiasharp": {
+          "description": "High-quality 2D graphics rendering library",
+          "distribution": "bundled_optional",
+          "critical": false,
+          "fallback_available": true,
+          "license": "BSD-3-Clause",
+          "attribution_required": true,
+          "attribution_text": "This software uses Skia graphics library",
+          "version": "2.88.0+",
+          "detection_method": "library_probe",
+          "files": [
+            "libSkiaSharp.dll",
+            "SkiaSharp.dll"
+          ]
+        }
+      },
+      "data_provider_apis": {
+        "description": "External API services for widget data",
+        "distribution": "user_configured",
+        "critical": false,
+        "providers": [
+          {
+            "name": "OpenWeatherMap",
+            "type": "weather_data",
+            "api_url": "https://api.openweathermap.org/data/2.5/",
+            "license": "Custom API Terms",
+            "attribution_required": true,
+            "attribution_text": "Weather data provided by OpenWeatherMap",
+            "rate_limits": {
+              "free_tier": "1000 calls/day",
+              "rate_per_minute": 60
+            },
+            "requires_api_key": true,
+            "security_check": "domain_whitelist"
+          },
+          {
+            "name": "Yahoo Finance",
+            "type": "financial_data", 
+            "api_url": "https://query1.finance.yahoo.com/v8/finance/chart/",
+            "license": "Personal use only",
+            "attribution_required": false,
+            "rate_limits": {
+              "requests_per_hour": 200,
+              "burst_limit": 5
+            },
+            "requires_api_key": false,
+            "security_check": "domain_whitelist"
+          },
+          {
+            "name": "CoinGecko",
+            "type": "cryptocurrency_data",
+            "api_url": "https://api.coingecko.com/api/v3/",
+            "license": "Custom API Terms",
+            "attribution_required": true,
+            "attribution_text": "Cryptocurrency data provided by CoinGecko",
+            "rate_limits": {
+              "free_tier": "50 calls/minute",
+              "demo_limit": "10000 calls/month"
+            },
+            "requires_api_key": false,
+            "security_check": "domain_whitelist"
+          }
+        ]
+      }
+    },
+    "development_dependencies": {
+      "description": "Dependencies required only for development/building",
+      "build_tools": {
+        "cmake": {
+          "minimum_version": "3.14",
+          "purpose": "Build system generator",
+          "critical": true,
+          "detection_method": "command_check"
+        },
+        "visual_studio": {
+          "minimum_version": "2022 (17.0)",
+          "toolset": "v143",
+          "purpose": "C++ compiler and IDE",
+          "critical": true,
+          "workloads_required": [
+            "C++ Desktop Development"
+          ]
+        },
+        "windows_sdk": {
+          "minimum_version": "10.0.19041.0",
+          "recommended_version": "10.0.22000.0",
+          "purpose": "Windows development headers and libraries",
+          "critical": true
+        }
+      },
+      "testing_framework": {
+        "googletest": {
+          "version": "1.12.0+",
+          "license": "BSD-3-Clause",
+          "purpose": "Unit testing framework",
+          "critical": false,
+          "distribution": "source_included"
+        }
+      }
+    },
+    "security_configuration": {
+      "phase_1_implemented": {
+        "encryption": {
+          "algorithm": "AES-GCM",
+          "key_derivation": "PBKDF2-HMAC-SHA256",
+          "api_key_storage": "Windows DPAPI",
+          "implementation_status": "complete"
+        },
+        "code_integrity": {
+          "signature_verification": "WinTrust API",
+          "certificate_chain_validation": true,
+          "retry_mechanism": true,
+          "implementation_status": "complete"
+        },
+        "malware_protection": {
+          "pattern_scanning": "regex_based",
+          "file_extension_validation": true,
+          "content_type_validation": true,
+          "implementation_status": "complete"
+        }
+      },
+      "domain_whitelist": [
+        "api.openweathermap.org",
+        "query1.finance.yahoo.com", 
+        "api.coingecko.com",
+        "rainmeterui.com",
+        "api.iextrading.com",
+        "www.alphavantage.co"
+      ],
+      "blocked_domains": [
+        "suspicious-api.example",
+        "malware-site.example"
+      ]
+    },
+    "deployment_requirements": {
+      "installer_dependencies": {
+        "nsis": {
+          "version": "3.08+",
+          "purpose": "Installer creation",
+          "critical": true,
+          "development_only": true
+        }
+      },
+      "runtime_detection": {
+        "methods": [
+          {
+            "name": "library_probe",
+            "description": "Attempt to load optional libraries and gracefully degrade"
+          },
+          {
+            "name": "registry_check", 
+            "description": "Check Windows registry for installed components"
+          },
+          {
+            "name": "file_existence",
+            "description": "Check for required files in system paths"
+          },
+          {
+            "name": "command_check",
+            "description": "Execute command to verify availability"
+          }
+        ]
+      },
+      "fallback_strategies": {
+        "graphics_rendering": {
+          "primary": "Skia hardware acceleration",
+          "fallback": "GDI+ software rendering",
+          "detection": "library_probe"
+        },
+        "network_connectivity": {
+          "primary": "Live data feeds",
+          "fallback": "Cached data or placeholder content",
+          "timeout": "5000ms"
+        }
+      }
+    }
+  },
+  "installation_verification": {
+    "critical_checks": [
+      {
+        "name": "windows_version",
+        "method": "GetVersion()",
+        "expected": "10.0.19041+",
+        "failure_action": "abort_installation"
+      },
+      {
+        "name": "vcpp_runtime",
+        "method": "registry_check", 
+        "expected": "14.30+",
+        "failure_action": "download_and_install"
+      },
+      {
+        "name": "security_libraries",
+        "method": "library_probe",
+        "expected": ["bcrypt.dll", "wintrust.dll", "crypt32.dll"],
+        "failure_action": "abort_installation"
+      },
+      {
+        "name": "disk_space",
+        "method": "GetDiskFreeSpace()",
+        "expected": "100MB+",
+        "failure_action": "warn_user"
+      }
+    ],
+    "optional_checks": [
+      {
+        "name": "internet_connectivity",
+        "method": "network_test",
+        "expected": "active_connection",
+        "failure_action": "warn_user"
+      },
+      {
+        "name": "graphics_acceleration",
+        "method": "directx_probe",
+        "expected": "dx11+",
+        "failure_action": "enable_software_fallback"
+      }
+    ]
+  }
+}

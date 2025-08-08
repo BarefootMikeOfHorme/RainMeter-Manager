@@ -1,0 +1,149 @@
+{
+  "rainmeterui_categories": {
+    "base_url": "https://rainmeterui.com",
+    "primary_skin_categories": [
+      {
+        "name": "Themes/Suites",
+        "url": "https://rainmeterui.com/tag/themes/",
+        "tag": "themes",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "Music & Visualizer",
+        "url": "https://rainmeterui.com/tag/visualizer/",
+        "tag": "visualizer",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "Time & Date",
+        "url": "https://rainmeterui.com/tag/time-date/",
+        "tag": "time-date",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "System Monitoring",
+        "url": "https://rainmeterui.com/tag/system-monitoring/",
+        "tag": "system-monitoring",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "Weather & Feeds",
+        "url": "https://rainmeterui.com/tag/weather/",
+        "tag": "weather",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "Docks & Launchers",
+        "url": "https://rainmeterui.com/tag/launchers-docks/",
+        "tag": "launchers-docks",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "Search Bars",
+        "url": "https://rainmeterui.com/tag/search-bar/",
+        "tag": "search-bar",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "Notes & Quotes",
+        "url": "https://rainmeterui.com/tag/note-quote/",
+        "tag": "note-quote",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "Volume Control",
+        "url": "https://rainmeterui.com/tag/volume/",
+        "tag": "volume",
+        "status": "active",
+        "http_status": 200
+      },
+      {
+        "name": "Gmail Notification",
+        "url": "https://rainmeterui.com/tag/g-mail/",
+        "tag": "g-mail",
+        "status": "active",
+        "http_status": 200,
+        "note": "Uses 'g-mail' instead of 'gmail' in URL"
+      },
+      {
+        "name": "Extra Skins",
+        "url": "https://rainmeterui.com/tag/extra/",
+        "tag": "extra",
+        "status": "active",
+        "http_status": 200
+      }
+    ],
+    "additional_categories": [
+      {
+        "name": "All Rainmeter Skins",
+        "url": "https://rainmeterui.com/category/rainmeter-skins-themes/",
+        "type": "category",
+        "status": "active",
+        "http_status": 200,
+        "description": "Comprehensive collection of all skins"
+      },
+      {
+        "name": "Tutorials",
+        "url": "https://rainmeterui.com/category/tutorials/",
+        "type": "category",
+        "status": "active",
+        "http_status": 200,
+        "description": "Help and tutorial content, not skins"
+      }
+    ],
+    "redirect_urls": [
+      {
+        "name": "Suites",
+        "url": "https://rainmeterui.com/redirect/suites/",
+        "type": "redirect",
+        "status": "active",
+        "http_status": 301
+      },
+      {
+        "name": "Visualizers",
+        "url": "https://rainmeterui.com/redirect/visualizer/",
+        "type": "redirect",
+        "status": "active",
+        "http_status": 301
+      },
+      {
+        "name": "Time & Date",
+        "url": "https://rainmeterui.com/redirect/time-date/",
+        "type": "redirect",
+        "status": "active",
+        "http_status": 301
+      },
+      {
+        "name": "System Monitor",
+        "url": "https://rainmeterui.com/redirect/system-monitor/",
+        "type": "redirect",
+        "status": "active",
+        "http_status": 301
+      },
+      {
+        "name": "Weather",
+        "url": "https://rainmeterui.com/redirect/weather-skins/",
+        "type": "redirect",
+        "status": "active",
+        "http_status": 301
+      }
+    ],
+    "validation_date": "2024-12-19",
+    "total_primary_categories": 11,
+    "total_additional_categories": 2,
+    "total_redirect_urls": 5,
+    "scraping_priority": {
+      "highest": "primary_skin_categories",
+      "medium": "additional_categories",
+      "lowest": "redirect_urls"
+    }
+  }
+}

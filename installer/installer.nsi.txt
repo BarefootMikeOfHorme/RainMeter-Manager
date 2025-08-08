@@ -1,0 +1,247 @@
+; Rainmeter Manager Installer
+; NSIS Script for creating a Windows installer
+; This automatically installs required dependencies
+
+!include "MUI2.nsh"
+!include "LogicLib.nsh"
+!include "FileFunc.nsh"
+!include "WinVer.nsh"
+!include "x64.nsh"
+!include "StrFunc.nsh"
+!insertmacro STRFUNC_USING "StrStr"
+
+; Define application information
+!define PRODUCT_NAME "Rainmeter Manager"
+!define PRODUCT_VERSION "1.0.0"
+!define PRODUCT_PUBLISHER "BarefootMikeOfHorme"
+!define PRODUCT_WEB_SITE "https://DeviantArt.com/BarefootMikeOfHorme"
+!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\rainmetermanager.exe"
+!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rainmeter Manager"
+!define MUI_TEXT_WELCOME_TITLE "Rainmeter Manager Setup"
+
+; Recommended Visual C++ Redistributable version
+!define VCR_VERSION "14.0"
+!define VCR_URL "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+!define VCR_FILENAME "vc_redist.x64.exe"
+
+; Scintilla version
+!define SCINTILLA_URL "https://www.scintilla.org/scintilla556.zip"
+!define SCINTILLA_FILENAME "scintilla556.zip"
+
+; Set modern UI settings
+!define MUI_ABORTWARNING
+!define MUI_ICON "C:\RainmeterManager\res\icon.ico"
+!define MUI_UNICON "C:\RainmeterManager\res\icon.ico"
+
+; Skip image files that might have naming issues
+; !define MUI_WELCOMEFINISHPAGE_BITMAP "C:\RainmeterManager\res\installerimage.bmp"
+; !define MUI_HEADERIMAGE
+; !define MUI_HEADERIMAGE_BITMAP "C:\RainmeterManager\res\header.bmp"
+
+; Define pages to display during installation
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE "/d/RainmeterManager/LICENSE.txt"
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+
+; Define uninstaller pages
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+; Define language
+!insertmacro MUI_LANGUAGE "English"
+
+; Set output file name
+OutFile "C:\RainmeterManager\installer\RainmeterManager-Setup.exe"
+
+; Set default installation directory
+InstallDir "$PROGRAMFILES64\Rainmeter Manager"
+
+; Get installation folder from registry if available
+InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+
+; Request admin privileges
+RequestExecutionLevel admin
+
+; Register product information
+VIProductVersion "${PRODUCT_VERSION}.0"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "${PRODUCT_NAME}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "${PRODUCT_PUBLISHER}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© ${PRODUCT_PUBLISHER}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "${PRODUCT_NAME} Installer"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "${PRODUCT_VERSION}"
+
+; Initialize variables
+; Removed unused variable RainmeterInstalled
+
+Section "Rainmeter Manager" SEC01
+    ; Set installation directory
+    SetOutPath "$INSTDIR"
+    SetOverwrite on
+
+    ; Main executable and resources
+    File /nonfatal "C:\RainmeterManager\src\rainmetermanager.exe"
+    ${If} ${Errors}
+        DetailPrint "rainmetermanager.exe is missing, skipping..."
+    ${EndIf}
+
+    File /nonfatal "C:\RainmeterManager\res\foldericon.png"
+    ${If} ${Errors}
+        DetailPrint "foldericon.png is missing, skipping..."
+    ${EndIf}
+
+    File /nonfatal "C:\RainmeterManager\res\manifest.xml"
+    ${If} ${Errors}
+        DetailPrint "manifest.xml is missing, skipping..."
+    ${EndIf}
+    
+    ; Create Start Menu shortcut
+    CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" \
+    "$INSTDIR\rainmetermanager.exe" "" "$INSTDIR\foldericon.png"
+
+    ; Create Desktop shortcut
+    CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" \
+    "$INSTDIR\rainmetermanager.exe" "" "$INSTDIR\foldericon.png"
+
+    ; Execute the build process
+    DetailPrint "Starting program build..."
+    ExecWait '"$INSTDIR\rainmetermanager.exe" /build'
+    ${If} ${Errors}
+        MessageBox MB_ICONSTOP "Build process failed. Please check your source files or logs."
+        Abort
+    ${EndIf}
+
+    ; Automatically launch the program after building
+    Exec "$INSTDIR\rainmetermanager.exe"
+
+    ; Register uninstaller
+    WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\rainmetermanager.exe"
+    WriteUninstaller "$INSTDIR\uninstall.exe"
+SectionEnd
+
+; Optional section for Scintilla Editor
+Section "Scintilla Editor" SEC02
+    SetOutPath "$INSTDIR"
+
+    ${If} ${FileExists} "$INSTDIR\SciLexer.dll"
+        DetailPrint "SciLexer.dll already exists, skipping download."
+    ${Else}
+        DetailPrint "Downloading Scintilla..."
+        inetc::get /SILENT "${SCINTILLA_URL}" "$TEMP\${SCINTILLA_FILENAME}" /END
+        Pop $0
+        ${If} $0 == "OK"
+            DetailPrint "Scintilla downloaded successfully."
+            nsisunz::UnzipToLog "$TEMP\${SCINTILLA_FILENAME}" "$TEMP\scintilla"
+            CopyFiles "$TEMP\scintilla\bin\SciLexer.dll" "$INSTDIR"
+            DetailPrint "Scintilla installed successfully."
+        ${Else}
+            DetailPrint "Failed to download Scintilla: $0"
+            Abort
+        ${EndIf}
+    ${EndIf}
+SectionEnd
+
+; Optional section for Rainmeter
+Section "Rainmeter" SEC04
+    ReadRegStr $0 HKLM "SOFTWARE\Rainmeter" "Language"
+    ${If} $0 == ""
+        DetailPrint "Downloading Rainmeter..."
+        inetc::get "https://github.com/rainmeter/rainmeter/releases/download/v4.5.17.3700/Rainmeter-4.5.17.exe" "$TEMP\Rainmeter-Setup.exe" /END
+        Pop $0
+        ${If} $0 == "OK"
+            ExecWait '"$TEMP\Rainmeter-Setup.exe" /S'
+            DetailPrint "Rainmeter installed successfully."
+            Delete "$TEMP\Rainmeter-Setup.exe"
+        ${Else}
+            DetailPrint "Failed to download Rainmeter: $0"
+            Abort
+        ${EndIf}
+    ${Else}
+        DetailPrint "Rainmeter is already installed."
+    ${EndIf}
+SectionEnd
+
+; Section descriptions
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+    !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "Core files for Rainmeter Manager"
+    !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "Scintilla editor for scripts"
+    ; Removed undefined ${SEC03}
+    !insertmacro MUI_DESCRIPTION_TEXT ${SEC04} "Rainmeter application (required)"
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+Function .onInit
+    ; Ensure the OS is at least Windows 10
+    ${IfNot} ${AtLeastWin10}
+        MessageBox MB_ICONSTOP|MB_OK "This application requires Windows 10 or later. Please update your system to proceed."
+        Abort
+    ${EndIf}
+
+    ; Phase 2 Enhanced System Requirements Check
+    DetailPrint "Validating Phase 2 application requirements..."
+    
+    ; Check for Phase 1 Security Framework dependencies
+    ${If} ${FileExists} "$SYSDIR\bcrypt.dll"
+        DetailPrint "✓ bcrypt.dll found - AES-GCM encryption support available"
+    ${Else}
+        MessageBox MB_ICONSTOP|MB_OK "Critical security library missing: bcrypt.dll$\nThis application requires Windows 10 or later with full cryptographic support."
+        Abort
+    ${EndIf}
+    
+    ${If} ${FileExists} "$SYSDIR\wintrust.dll"
+        DetailPrint "✓ wintrust.dll found - Code signature verification available"
+    ${Else}
+        MessageBox MB_ICONSTOP|MB_OK "Critical security library missing: wintrust.dll$\nThis application requires Windows 10 or later with WinTrust API support."
+        Abort
+    ${EndIf}
+    
+    ${If} ${FileExists} "$SYSDIR\crypt32.dll"
+        DetailPrint "✓ crypt32.dll found - Certificate validation and DPAPI available"
+    ${Else}
+        MessageBox MB_ICONSTOP|MB_OK "Critical security library missing: crypt32.dll$\nThis application requires Windows 10 or later with full cryptographic support."
+        Abort
+    ${EndIf}
+
+    ; Read the ProductName value to detect the OS version
+    ReadRegStr $0 HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion" "ProductName"
+    DetailPrint "Detected Windows Version: $0"
+
+    ; Check if $0 contains "Windows 11"
+    ${StrStr} $0 "Windows 11" $R1
+    ${If} $R1 >= 0
+        DetailPrint "Compatible Windows version detected: Windows 11."
+    ${Else}
+        ${StrStr} $0 "Windows 10" $R1
+        ${If} $R1 >= 0
+            DetailPrint "Compatible Windows version detected: Windows 10."
+        ${Else}
+            MessageBox MB_ICONSTOP|MB_OK "This application supports only Windows 10 or 11. Detected version: $0."
+            Abort
+        ${EndIf}
+${EndIf}
+FunctionEnd
+
+; Uninstaller section
+Section "Uninstall"
+    ; Remove installed files
+    Delete "$INSTDIR\rainmetermanager.exe"
+    Delete "$INSTDIR\RainmeterManager.txt"
+    Delete "$INSTDIR\foldericon.png"
+    Delete "$INSTDIR\manifest.xml"
+    Delete "$INSTDIR\SciLexer.dll"
+    Delete "$INSTDIR\uninstall.exe"
+
+    ; Remove shortcuts
+    Delete "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}"
+    Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
+    RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
+
+    ; Remove registry keys
+    DeleteRegKey HKLM "${PRODUCT_UNINST_KEY}"
+    DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
+
+    ; Remove installation directory
+    RMDir "$INSTDIR"
+SectionEnd

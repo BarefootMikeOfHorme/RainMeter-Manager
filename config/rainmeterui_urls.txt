@@ -1,0 +1,25 @@
+# RainmeterUI Category URLs for Scraping
+# Primary categories (11 main skin categories)
+
+https://rainmeterui.com/tag/themes/
+https://rainmeterui.com/tag/visualizer/
+https://rainmeterui.com/tag/time-date/
+https://rainmeterui.com/tag/system-monitoring/
+https://rainmeterui.com/tag/weather/
+https://rainmeterui.com/tag/launchers-docks/
+https://rainmeterui.com/tag/search-bar/
+https://rainmeterui.com/tag/note-quote/
+https://rainmeterui.com/tag/volume/
+https://rainmeterui.com/tag/g-mail/
+https://rainmeterui.com/tag/extra/
+
+# Additional categories
+https://rainmeterui.com/category/rainmeter-skins-themes/
+https://rainmeterui.com/category/tutorials/
+
+# Redirect URLs (alternative access)
+https://rainmeterui.com/redirect/suites/
+https://rainmeterui.com/redirect/visualizer/
+https://rainmeterui.com/redirect/time-date/
+https://rainmeterui.com/redirect/system-monitor/
+https://rainmeterui.com/redirect/weather-skins/
