@@ -17,11 +17,13 @@
 # Binary files (no diffs)
 *.png binary
 *.ico binary
-*.zip binary
-*.tar.gz binary
-*.tgz binary
 *.exe binary
 *.dll binary
 *.lib binary
 *.pdb binary
+
+# Git LFS for large archives (track backups and large blobs)
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.tar.gz filter=lfs diff=lfs merge=lfs -text
+*.tgz filter=lfs diff=lfs merge=lfs -text
 
