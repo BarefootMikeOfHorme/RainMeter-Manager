@@ -169,7 +169,7 @@ public:
     /**
      * @brief Destructor
      */
-    ~SplashScreen();
+    ~CinematicSplashScreen();
     
     // Prevent copy/move
     SplashScreen(const SplashScreen&) = delete;
@@ -260,7 +260,7 @@ private:
     /**
      * @brief Paint the splash screen
      */
-    void OnPaint(HDC hdc);
+    void OnPaint();
     
     /**
      * @brief Draw the logo

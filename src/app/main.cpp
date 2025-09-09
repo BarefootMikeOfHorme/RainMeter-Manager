@@ -19,6 +19,7 @@
 
 // Phase 2: Application core layer
 #include "rainmgrapp.h"
+using RainmeterManager::App::RAINMGRApp;
 
 // Global application constants
 constexpr int EMERGENCY_EXIT_CODE = -1;

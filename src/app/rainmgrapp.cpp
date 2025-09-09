@@ -1,6 +1,7 @@
 #include "rainmgrapp.h"
 #include "../core/error_handling.h"
-#include "../core/security.h"
+#include "../core/security_adapter.h"
+#include "../core/logger_adapter.h"
 #include <filesystem>
 #include <shlwapi.h>
 #include <atomic>

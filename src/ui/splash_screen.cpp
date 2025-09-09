@@ -1,4 +1,5 @@
 #include "splash_screen.h"
+#include "../core/logger_adapter.h"
 #include <dwmapi.h>
 #include <shellapi.h>
 #include <random>

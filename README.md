@@ -2,6 +2,69 @@
 
 An enterprise-grade management application for Rainmeter skins and widgets with advanced security features.
 
+## Architecture
+
+### Dependency Flow Diagram
+
+```mermaid
+graph TD
+    A[RainmeterManager.exe] --> B[Core Engine]
+    B --> C[Plugin System]
+    B --> D[UI Framework]
+    B --> K[Security Framework]
+    D --> E[SkiaSharp Renderer]
+    D --> F[DirectX Fallback]
+    C --> G[Weather Plugin]
+    C --> H[System Monitor Plugin]
+    E --> I[Native Skia]
+    F --> J[Direct2D/D3D]
+    K --> L[AES-GCM / BCrypt]
+    K --> M[WinTrust / Code Signing]
+    K --> N[DPAPI Secrets]
+```
+
+## 🚀 **Phase 1 Complete - Security Framework Implementation**
+
+### Dependency Flow Diagram
+
+```mermaid
+graph TD
+    A[RainmeterManager.exe] --> B[Core Engine]
+    B --> C[Plugin System]
+    B --> D[UI Framework]
+    B --> K[Security Framework]
+    D --> E[SkiaSharp Renderer]
+    D --> F[DirectX Fallback]
+    C --> G[Weather Plugin]
+    C --> H[System Monitor Plugin]
+    E --> I[Native Skia]
+    F --> J[Direct2D/D3D]
+    K --> L[AES-GCM / BCrypt]
+    K --> M[WinTrust / Code Signing]
+    K --> N[DPAPI Secrets]
+```
+
+## 🚀 **Phase 1 Complete - Security Framework Implementation**
+
+### Dependency Flow Diagram
+
+```mermaid
+graph TD
+    A[RainmeterManager.exe] --> B[Core Engine]
+    B --> C[Plugin System]
+    B --> D[UI Framework]
+    B --> K[Security Framework]
+    D --> E[SkiaSharp Renderer]
+    D --> F[DirectX Fallback]
+    C --> G[Weather Plugin]
+    C --> H[System Monitor Plugin]
+    E --> I[Native Skia]
+    F --> J[Direct2D/D3D]
+    K --> L[AES-GCM / BCrypt]
+    K --> M[WinTrust / Code Signing]
+    K --> N[DPAPI Secrets]
+```
+
 ## 🚀 **Phase 1 Complete - Security Framework Implementation**
 
 ✅ **WinMain Entry Point** - Enterprise-grade application bootstrap  

@@ -1,5 +1,6 @@
 #include "config_manager.h"
-#include "../core/security.h"
+#include "../core/security_adapter.h"
+#include "../core/logger_adapter.h"
 #include <Windows.h>
 #include <fstream>
 #include <sstream>

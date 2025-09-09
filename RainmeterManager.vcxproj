@@ -100,7 +100,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>user32.lib;gdi32.lib;comctl32.lib;shell32.lib;shlwapi.lib;comdlg32.lib;ole32.lib;advapi32.lib;wininet.lib;dbghelp.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;gdi32.lib;comctl32.lib;shell32.lib;shlwapi.lib;comdlg32.lib;ole32.lib;advapi32.lib;wininet.lib;dbghelp.lib;version.lib;bcrypt.lib;wintrust.lib;crypt32.lib;d2d1.lib;dwrite.lib;windowscodecs.lib;shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   
@@ -135,6 +135,11 @@
     <ClCompile Include="src\core\logger.cpp" />
     <ClCompile Include="src\core\security.cpp" />
     <ClCompile Include="src\widgets\community\community_feedback_integration.cpp" />
+    <ClCompile Include="src\core\logger_adapter.cpp" />
+    <ClCompile Include="src\core\security_adapter.cpp" />
+    <ClCompile Include="src\app\rainmgrapp.cpp" />
+    <ClCompile Include="src\config\config_manager.cpp" />
+    <ClCompile Include="src\core\service_locator.cpp" />
     <!-- Add other cpp files as you create them -->
   </ItemGroup>
   
@@ -144,6 +149,8 @@
     <ClInclude Include="src\core\error_handling.h" />
     <ClInclude Include="src\core\logger.h" />
     <ClInclude Include="src\core\security.h" />
+    <ClInclude Include="src\core\logger_adapter.h" />
+    <ClInclude Include="src\core\security_adapter.h" />
     <ClInclude Include="src\ui\ui_framework.h" />
     <ClInclude Include="src\ui\widget_ui_manager.h" />
     <ClInclude Include="src\widgets\community\community_feedback.h" />
