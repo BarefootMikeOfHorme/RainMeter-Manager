@@ -1,0 +1,27 @@
+* text=auto
+
+# Normalize line endings for scripts
+*.sh eol=lf
+*.ps1 eol=crlf
+*.bat eol=crlf
+
+# Prefer C/C++-aware diffs
+*.c  diff=cpp
+*.cc diff=cpp
+*.cpp diff=cpp
+*.cxx diff=cpp
+*.h  diff=cpp
+*.hh diff=cpp
+*.hpp diff=cpp
+
+# Binary files (no diffs)
+*.png binary
+*.ico binary
+*.zip binary
+*.tar.gz binary
+*.tgz binary
+*.exe binary
+*.dll binary
+*.lib binary
+*.pdb binary
+

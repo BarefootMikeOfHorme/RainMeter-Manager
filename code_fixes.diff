@@ -1,0 +1,76 @@
+--- src/rainmetermanager.exe (original)
++++ src/rainmetermanager.exe (fixed)
+@@ -354,27 +354,12 @@
+                     if (selIndex == LB_ERR) {
+                         SetWindowTextW(g_hStaticStatus, L"Status: No widget selected");
+                     } else {
+-                        wchar_t dllPath[MAX_PATH];
+-    StringCchPrintfW(dllPath, MAX_PATH, L"%s\\SciLexer.dll", appPath);
+-    
+-    hSciDLL = LoadLibraryW(dllPath);
+-    if (!hSciDLL) {
+-        // Try system paths
+-        hSciDLL = LoadLibraryW(L"SciLexer.dll");
+-        if (!hSciDLL) {
+-            LogError(L"InitializeScintilla", L"Failed to load SciLexer.dll");
+-            return FALSE;
+-        }
+-    }
+-    
+-    // Register Scintilla window class
+-    WNDCLASSEXW wc = {0};
+-    wc.cbSize = sizeof(WNDCLASSEXW);
+-    wc.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
+-    wc.lpfnWndProc = DefWindowProcW;
+-    wc.hInstance = hInstance;
+-    wc.lpszClassName = SCINTILLA_CLASS;
+-    RegisterClassExW(&wc);
++                        wchar_t widgetFile[MAX_PATH];
++                        SendMessageW(g_hListWidgets, LB_GETTEXT, selIndex, (LPARAM)widgetFile);
++                        
++                        // Prepare full path
++                        wchar_t fullPath[MAX_PATH];
++                        StringCchPrintfW(fullPath, MAX_PATH, L"%s\\%s", GetRainmeterSkinPath(), widgetFile);
+
+@@ -524,12 +509,8 @@
+     }
+     
+     return TRUE;
+-}
+-
+-widgetFile[MAX_PATH];
+-                        SendMessageW(g_hListWidgets, LB_GETTEXT, selIndex, (LPARAM)widgetFile);
+-                        
+-                        // Prepare full path
+-                        wchar_t fullPath[MAX_PATH];
+-                        StringCchPrintfW(fullPath, MAX_PATH, L"%s\\%s", GetRainmeterSkinPath(), widgetFile);
++}
++
++// Initialize Scintilla
++BOOL InitializeScintilla(HINSTANCE hInstance, const wchar_t* appPath)
++{
++    HMODULE hSciDLL;
++    wchar_t dllPath[MAX_PATH];
++    StringCchPrintfW(dllPath, MAX_PATH, L"%s\\SciLexer.dll", appPath);
++    
++    hSciDLL = LoadLibraryW(dllPath);
++    if (!hSciDLL) {
++        // Try system paths
++        hSciDLL = LoadLibraryW(L"SciLexer.dll");
++        if (!hSciDLL) {
++            LogError(L"InitializeScintilla", L"Failed to load SciLexer.dll");
++            return FALSE;
++        }
++    }
++    
++    // Register Scintilla window class
++    WNDCLASSEXW wc = {0};
++    wc.cbSize = sizeof(WNDCLASSEXW);
++    wc.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
++    wc.lpfnWndProc = DefWindowProcW;
++    wc.hInstance = hInstance;
++    wc.lpszClassName = SCINTILLA_CLASS;
++    RegisterClassExW(&wc);
++    
++    return TRUE;
++}

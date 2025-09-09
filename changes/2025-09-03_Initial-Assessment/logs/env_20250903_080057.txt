@@ -1,0 +1,14 @@
+=== Environment Snapshot (20250903_080057) ===
+PWD: /c/Users/Administrator
+ROOT: /c/Users/Administrator/RainmeterManager
+CMAKE VERSION:
+bash: line 14: cmake: command not found
+VS WHERE (if available):
+Microsoft Windows [Version 10.0.26100.5074]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Administrator>CL availability:
+Microsoft Windows [Version 10.0.26100.5074]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Administrator>

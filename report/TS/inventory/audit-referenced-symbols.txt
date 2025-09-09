@@ -1,0 +1,286 @@
+/d/RainmeterManager/src/app/main.cpp:185:        LOG_INFO("Creating RAINMGRApp singleton instance...");
+/d/RainmeterManager/src/app/main.cpp:188:        auto& app = RAINMGRApp::GetInstance(hInstance);
+/d/RainmeterManager/src/app/main.cpp:192:            LOG_ERROR("Failed to initialize RAINMGRApp singleton");
+/d/RainmeterManager/src/app/main.cpp:200:        LOG_INFO("RAINMGRApp singleton created and initialized successfully");
+/d/RainmeterManager/src/app/main.cpp:232:        // Phase 7: UI Initialization & Splash Screen
+/d/RainmeterManager/src/app/main.cpp:265:        LOG_INFO("Phase 2: Starting RAINMGRApp main loop...");
+/d/RainmeterManager/src/app/main.cpp:267:        // Phase 2: Run the application using RAINMGRApp singleton
+/d/RainmeterManager/src/app/rainmgrapp.cpp:15:std::unique_ptr<RAINMGRApp> RAINMGRApp::instance_ = nullptr;
+/d/RainmeterManager/src/app/rainmgrapp.cpp:16:std::mutex RAINMGRApp::instance_mutex_;
+/d/RainmeterManager/src/app/rainmgrapp.cpp:21:RAINMGRApp::RAINMGRApp(HINSTANCE hInstance)
+/d/RainmeterManager/src/app/rainmgrapp.cpp:29:    LogApplicationEvent(L"RAINMGRApp instance created");
+/d/RainmeterManager/src/app/rainmgrapp.cpp:32:RAINMGRApp::~RAINMGRApp() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:36:    LogApplicationEvent(L"RAINMGRApp instance destroyed");
+/d/RainmeterManager/src/app/rainmgrapp.cpp:39:RAINMGRApp& RAINMGRApp::GetInstance(HINSTANCE hInstance) {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:46:        instance_ = std::unique_ptr<RAINMGRApp>(new RAINMGRApp(hInstance));
+/d/RainmeterManager/src/app/rainmgrapp.cpp:52:void RAINMGRApp::DestroyInstance() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:57:bool RAINMGRApp::Initialize() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:80:        serviceLocator_ = std::make_unique<Core::ServiceLocator>();
+/d/RainmeterManager/src/app/rainmgrapp.cpp:110:int RAINMGRApp::Run() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:154:bool RAINMGRApp::ProcessMessages() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:173:void RAINMGRApp::PostQuitMessage(int exitCode) {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:178:void RAINMGRApp::RequestShutdown() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:188:void RAINMGRApp::Shutdown() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:219:void RAINMGRApp::RegisterShutdownHandler(std::function<void()> handler) {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:225:void RAINMGRApp::UnregisterAllShutdownHandlers() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:232:bool RAINMGRApp::InitializePaths() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:272:bool RAINMGRApp::InitializeServices() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:290:bool RAINMGRApp::InitializeLogging() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:301:bool RAINMGRApp::InitializeSecurity() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:320:bool RAINMGRApp::CreateMainWindow() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:377:void RAINMGRApp::ExecuteShutdownHandlers() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:399:void RAINMGRApp::CleanupResources() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:412:void RAINMGRApp::CleanupServices() {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:425:LRESULT CALLBACK RAINMGRApp::MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:426:    RAINMGRApp* app = nullptr;
+/d/RainmeterManager/src/app/rainmgrapp.cpp:431:        app = reinterpret_cast<RAINMGRApp*>(cs->lpCreateParams);
+/d/RainmeterManager/src/app/rainmgrapp.cpp:435:        app = reinterpret_cast<RAINMGRApp*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+/d/RainmeterManager/src/app/rainmgrapp.cpp:445:LRESULT RAINMGRApp::HandleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:490:void RAINMGRApp::HandleFatalError(const std::wstring& error) {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:502:void RAINMGRApp::LogApplicationEvent(const std::wstring& event, Core::LogLevel level) {
+/d/RainmeterManager/src/app/rainmgrapp.cpp:507:                logger.LogError(L"RAINMGRApp: " + event);
+/d/RainmeterManager/src/app/rainmgrapp.cpp:510:                logger.LogWarning(L"RAINMGRApp: " + event);
+/d/RainmeterManager/src/app/rainmgrapp.cpp:514:                logger.LogInfo(L"RAINMGRApp: " + event);
+/d/RainmeterManager/src/app/rainmgrapp.h:14: * @brief RAINMGRApp - Main Application Singleton Class
+/d/RainmeterManager/src/app/rainmgrapp.h:25:class RAINMGRApp {
+/d/RainmeterManager/src/app/rainmgrapp.h:27:    static std::unique_ptr<RAINMGRApp> instance_;
+/d/RainmeterManager/src/app/rainmgrapp.h:38:    std::unique_ptr<Core::ServiceLocator> serviceLocator_;
+/d/RainmeterManager/src/app/rainmgrapp.h:49:    explicit RAINMGRApp(HINSTANCE hInstance);
+/d/RainmeterManager/src/app/rainmgrapp.h:53:    static RAINMGRApp& GetInstance(HINSTANCE hInstance = nullptr);
+/d/RainmeterManager/src/app/rainmgrapp.h:57:    RAINMGRApp(const RAINMGRApp&) = delete;
+/d/RainmeterManager/src/app/rainmgrapp.h:58:    RAINMGRApp& operator=(const RAINMGRApp&) = delete;
+/d/RainmeterManager/src/app/rainmgrapp.h:59:    RAINMGRApp(RAINMGRApp&&) = delete;
+/d/RainmeterManager/src/app/rainmgrapp.h:60:    RAINMGRApp& operator=(RAINMGRApp&&) = delete;
+/d/RainmeterManager/src/app/rainmgrapp.h:62:    ~RAINMGRApp();
+/d/RainmeterManager/src/app/rainmgrapp.h:75:    Core::ServiceLocator& GetServiceLocator() { return *serviceLocator_; }
+/d/RainmeterManager/src/config/config_manager.cpp:12:ConfigManager::ConfigManager() {
+/d/RainmeterManager/src/config/config_manager.cpp:13:    LogConfigEvent("ConfigManager instance created");
+/d/RainmeterManager/src/config/config_manager.cpp:16:ConfigManager::~ConfigManager() {
+/d/RainmeterManager/src/config/config_manager.cpp:17:    LogConfigEvent("ConfigManager instance destroyed");
+/d/RainmeterManager/src/config/config_manager.cpp:20:bool ConfigManager::Initialize(const std::string& configDir) {
+/d/RainmeterManager/src/config/config_manager.cpp:48:        LogConfigEvent("ConfigManager initialized with directory: " + configDir);
+/d/RainmeterManager/src/config/config_manager.cpp:52:        std::string error = "Exception during ConfigManager initialization: ";
+/d/RainmeterManager/src/config/config_manager.cpp:59:bool ConfigManager::LoadConfigFile(const std::string& filename, bool required) {
+/d/RainmeterManager/src/config/config_manager.cpp:98:std::string ConfigManager::GetString(const std::string& key, const std::string& defaultValue) const {
+/d/RainmeterManager/src/config/config_manager.cpp:112:int ConfigManager::GetInt(const std::string& key, int defaultValue) const {
+/d/RainmeterManager/src/config/config_manager.cpp:126:double ConfigManager::GetDouble(const std::string& key, double defaultValue) const {
+/d/RainmeterManager/src/config/config_manager.cpp:140:bool ConfigManager::GetBool(const std::string& key, bool defaultValue) const {
+/d/RainmeterManager/src/config/config_manager.cpp:160:std::vector<std::string> ConfigManager::GetStringArray(const std::string& key) const {
+/d/RainmeterManager/src/config/config_manager.cpp:188:void ConfigManager::SetString(const std::string& key, const std::string& value, 
+/d/RainmeterManager/src/config/config_manager.cpp:207:void ConfigManager::SetInt(const std::string& key, int value, ConfigSource source) {
+/d/RainmeterManager/src/config/config_manager.cpp:211:void ConfigManager::SetDouble(const std::string& key, double value, ConfigSource source) {
+/d/RainmeterManager/src/config/config_manager.cpp:215:void ConfigManager::SetBool(const std::string& key, bool value, ConfigSource source) {
+/d/RainmeterManager/src/config/config_manager.cpp:219:bool ConfigManager::HasKey(const std::string& key) const {
+/d/RainmeterManager/src/config/config_manager.cpp:224:bool ConfigManager::RemoveKey(const std::string& key) {
+/d/RainmeterManager/src/config/config_manager.cpp:242:std::vector<std::string> ConfigManager::GetKeys(const std::string& prefix) const {
+/d/RainmeterManager/src/config/config_manager.cpp:256:size_t ConfigManager::RegisterChangeCallback(const std::string& keyPattern, ChangeCallback callback) {
+/d/RainmeterManager/src/config/config_manager.cpp:266:void ConfigManager::UnregisterChangeCallback(size_t callbackId) {
+/d/RainmeterManager/src/config/config_manager.cpp:275:bool ConfigManager::CheckAndReloadFiles() {
+/d/RainmeterManager/src/config/config_manager.cpp:303:std::unordered_map<std::string, std::string> ConfigManager::GetStatistics() const {
+/d/RainmeterManager/src/config/config_manager.cpp:344:bool ConfigManager::ParseJsonFile(const std::string& filepath) {
+/d/RainmeterManager/src/config/config_manager.cpp:365:bool ConfigManager::ParseJsonObject(const std::string& json, const std::string& prefix) {
+/d/RainmeterManager/src/config/config_manager.cpp:397:bool ConfigManager::FileExists(const std::string& filepath) const {
+/d/RainmeterManager/src/config/config_manager.cpp:402:FILETIME ConfigManager::GetFileTimestamp(const std::string& filepath) const {
+/d/RainmeterManager/src/config/config_manager.cpp:416:bool ConfigManager::CreateDirectoryIfNotExists(const std::string& path) const {
+/d/RainmeterManager/src/config/config_manager.cpp:429:std::string ConfigManager::EncryptValue(const std::string& value) const {
+/d/RainmeterManager/src/config/config_manager.cpp:439:std::string ConfigManager::DecryptValue(const std::string& encryptedValue) const {
+/d/RainmeterManager/src/config/config_manager.cpp:449:void ConfigManager::NotifyConfigChange(const std::string& key, const std::string& oldValue, const std::string& newValue) {
+/d/RainmeterManager/src/config/config_manager.cpp:463:bool ConfigManager::MatchesPattern(const std::string& key, const std::string& pattern) const {
+/d/RainmeterManager/src/config/config_manager.cpp:490:void ConfigManager::LogConfigEvent(const std::string& message, Core::LogLevel level) const {
+/d/RainmeterManager/src/config/config_manager.cpp:495:                logger.LogError(L"ConfigManager: " + std::wstring(message.begin(), message.end()));
+/d/RainmeterManager/src/config/config_manager.cpp:498:                logger.LogWarning(L"ConfigManager: " + std::wstring(message.begin(), message.end()));
+/d/RainmeterManager/src/config/config_manager.cpp:502:                logger.LogInfo(L"ConfigManager: " + std::wstring(message.begin(), message.end()));
+/d/RainmeterManager/src/config/config_manager.h:27:class ConfigManager {
+/d/RainmeterManager/src/config/config_manager.h:79:    ConfigManager();
+/d/RainmeterManager/src/config/config_manager.h:80:    ~ConfigManager();
+/d/RainmeterManager/src/config/config_manager.h:83:    ConfigManager(const ConfigManager&) = delete;
+/d/RainmeterManager/src/config/config_manager.h:84:    ConfigManager& operator=(const ConfigManager&) = delete;
+/d/RainmeterManager/src/config/config_manager.h:85:    ConfigManager(ConfigManager&&) = delete;
+/d/RainmeterManager/src/config/config_manager.h:86:    ConfigManager& operator=(ConfigManager&&) = delete;
+/d/RainmeterManager/src/core/service_locator.cpp:7:ServiceLocator::~ServiceLocator() {
+/d/RainmeterManager/src/core/service_locator.cpp:9:    Logger::GetInstance().LogInfo(L"ServiceLocator: Destroyed");
+/d/RainmeterManager/src/core/service_locator.h:26:class ServiceLocator {
+/d/RainmeterManager/src/core/service_locator.h:54:    ServiceLocator() = default;
+/d/RainmeterManager/src/core/service_locator.h:55:    ~ServiceLocator();
+/d/RainmeterManager/src/core/service_locator.h:58:    ServiceLocator(const ServiceLocator&) = delete;
+/d/RainmeterManager/src/core/service_locator.h:59:    ServiceLocator& operator=(const ServiceLocator&) = delete;
+/d/RainmeterManager/src/core/service_locator.h:60:    ServiceLocator(ServiceLocator&&) = delete;
+/d/RainmeterManager/src/core/service_locator.h:61:    ServiceLocator& operator=(ServiceLocator&&) = delete;
+/d/RainmeterManager/src/core/service_locator.h:223:        Logger::GetInstance().LogInfo(L"ServiceLocator: All services cleared");
+/d/RainmeterManager/src/core/service_locator.h:302:        std::wstring message = L"ServiceLocator: Registered " + 
+/d/RainmeterManager/src/core/service_locator.h:315:        std::wstring message = L"ServiceLocator: Unregistered service: " +
+/d/RainmeterManager/src/render/ipc/render_ipc_bridge.cpp:23:    , logger_(ServiceLocator::Instance().Get<Logger>())
+/d/RainmeterManager/src/render/managers/render_coordinator.h:362:        Core::ServiceLocator& serviceLocator_;
+/d/RainmeterManager/src/render/managers/render_coordinator.h:363:        Config::ConfigManager& configManager_;
+/d/RainmeterManager/src/render/test/render_core_test.cpp:15: * This integrates directly into the existing RAINMGRApp without external dependencies
+/d/RainmeterManager/src/ui/splash_screen.cpp:15:// Static instance for SplashManager
+/d/RainmeterManager/src/ui/splash_screen.cpp:16:SplashManager* SplashManager::instance_ = nullptr;
+/d/RainmeterManager/src/ui/splash_screen.cpp:48:CinematicSplashScreen::CinematicSplashScreen(HINSTANCE hInstance, const Config& config)
+/d/RainmeterManager/src/ui/splash_screen.cpp:97:    LogEvent(L"CinematicSplashScreen initialized successfully");
+/d/RainmeterManager/src/ui/splash_screen.cpp:100:CinematicSplashScreen::~CinematicSplashScreen() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:109:bool CinematicSplashScreen::Show() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:123:    if (!CreateSplashWindow()) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:145:    animationThread_ = std::thread(&CinematicSplashScreen::AnimationThreadFunc, this);
+/d/RainmeterManager/src/ui/splash_screen.cpp:150:        audioThread_ = std::thread(&CinematicSplashScreen::AudioThreadFunc, this);
+/d/RainmeterManager/src/ui/splash_screen.cpp:168:void CinematicSplashScreen::Hide() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:209:void CinematicSplashScreen::UpdateProgress(int percentage, const std::wstring& status) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:230:bool CinematicSplashScreen::Initialize() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:238:    wc.lpfnWndProc = SplashWindowProc;
+/d/RainmeterManager/src/ui/splash_screen.cpp:255:bool CinematicSplashScreen::CreateSplashWindow() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:260:        L"RainmeterManager - Cinematic Splash",
+/d/RainmeterManager/src/ui/splash_screen.cpp:308:bool CinematicSplashScreen::LoadResources() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:393:void CinematicSplashScreen::CleanupResources() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:413:LRESULT CALLBACK CinematicSplashScreen::SplashWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:420:    CinematicSplashScreen* splash = reinterpret_cast<CinematicSplashScreen*>(
+/d/RainmeterManager/src/ui/splash_screen.cpp:431:LRESULT CinematicSplashScreen::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:458:void CinematicSplashScreen::OnPaint() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:492:void CinematicSplashScreen::RenderWaterBackground() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:515:void CinematicSplashScreen::RenderFloatingLeaves() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:539:void CinematicSplashScreen::RenderWaterDrop() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:552:void CinematicSplashScreen::RenderRipples() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:582:void CinematicSplashScreen::RenderUI() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:662:void CinematicSplashScreen::TriggerWaterDrop(float x, float y) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:680:void CinematicSplashScreen::AnimationThreadFunc() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:725:void CinematicSplashScreen::UpdateWaterDrop(float deltaTime) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:745:void CinematicSplashScreen::UpdateRipples(float deltaTime) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:765:void CinematicSplashScreen::UpdateLeaves(float deltaTime) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:770:void CinematicSplashScreen::CreateRipple(float x, float y, float intensity) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:788:void CinematicSplashScreen::InitializeLeaves() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:803:bool CinematicSplashScreen::InitializeAudio() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:836:void CinematicSplashScreen::AudioThreadFunc() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:862:void CinematicSplashScreen::GenerateWaterSounds(float* buffer, int sampleCount) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:891:void CinematicSplashScreen::CalculateOptimalSize() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:911:void CinematicSplashScreen::CenterWindow() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:924:void CinematicSplashScreen::LogEvent(const std::wstring& event, LogLevel level) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:926:    logger.LogWide(level, L"CinematicSplashScreen", event);
+/d/RainmeterManager/src/ui/splash_screen.cpp:930:bool CinematicSplashScreen::IsVisible() const {
+/d/RainmeterManager/src/ui/splash_screen.cpp:935:bool CinematicSplashScreen::IsDismissed() const {
+/d/RainmeterManager/src/ui/splash_screen.cpp:940:void CinematicSplashScreen::SetCompletionCallback(CompletionCallback callback) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:945:void CinematicSplashScreen::Dismiss() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:949:bool CinematicSplashScreen::ProcessMessages() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:965:// SplashManager Implementation
+/d/RainmeterManager/src/ui/splash_screen.cpp:966:SplashManager& SplashManager::GetInstance() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:968:        instance_ = new SplashManager();
+/d/RainmeterManager/src/ui/splash_screen.cpp:973:void SplashManager::DestroyInstance() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:978:bool SplashManager::ShowSplash(HINSTANCE hInstance) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:979:    CinematicSplashScreen::Config config;
+/d/RainmeterManager/src/ui/splash_screen.cpp:980:    return ShowSplash(hInstance, config);
+/d/RainmeterManager/src/ui/splash_screen.cpp:983:bool SplashManager::ShowSplash(HINSTANCE hInstance, const CinematicSplashScreen::Config& config) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:988:    splashScreen_ = std::make_unique<CinematicSplashScreen>(hInstance, config);
+/d/RainmeterManager/src/ui/splash_screen.cpp:994:void SplashManager::UpdateProgress(int percentage, const std::wstring& status) {
+/d/RainmeterManager/src/ui/splash_screen.cpp:1000:void SplashManager::HideSplash() {
+/d/RainmeterManager/src/ui/splash_screen.cpp:1008:bool SplashManager::ProcessMessages() {
+/d/RainmeterManager/src/ui/splash_screen.h:37: * @brief Cinematic 4K Water-themed Splash Screen
+/d/RainmeterManager/src/ui/splash_screen.h:48:class CinematicSplashScreen {
+/d/RainmeterManager/src/ui/splash_screen.h:124:    static constexpr const wchar_t* SPLASH_WINDOW_CLASS = L"RainmeterManagerSplashWindow";
+/d/RainmeterManager/src/ui/splash_screen.h:167:    explicit CinematicSplashScreen(HINSTANCE hInstance, const Config& config = Config{});
+/d/RainmeterManager/src/ui/splash_screen.h:172:    ~SplashScreen();
+/d/RainmeterManager/src/ui/splash_screen.h:175:    SplashScreen(const SplashScreen&) = delete;
+/d/RainmeterManager/src/ui/splash_screen.h:176:    SplashScreen& operator=(const SplashScreen&) = delete;
+/d/RainmeterManager/src/ui/splash_screen.h:177:    SplashScreen(SplashScreen&&) = delete;
+/d/RainmeterManager/src/ui/splash_screen.h:178:    SplashScreen& operator=(SplashScreen&&) = delete;
+/d/RainmeterManager/src/ui/splash_screen.h:238:    bool CreateSplashWindow();
+/d/RainmeterManager/src/ui/splash_screen.h:253:    static LRESULT CALLBACK SplashWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+/d/RainmeterManager/src/ui/splash_screen.h:322: * @brief Splash screen manager for easy integration
+/d/RainmeterManager/src/ui/splash_screen.h:327:class SplashManager {
+/d/RainmeterManager/src/ui/splash_screen.h:329:    static SplashManager* instance_;
+/d/RainmeterManager/src/ui/splash_screen.h:330:    std::unique_ptr<SplashScreen> splashScreen_;
+/d/RainmeterManager/src/ui/splash_screen.h:337:    static SplashManager& GetInstance();
+/d/RainmeterManager/src/ui/splash_screen.h:347:    bool ShowSplash(HINSTANCE hInstance);
+/d/RainmeterManager/src/ui/splash_screen.h:352:    bool ShowSplash(HINSTANCE hInstance, const SplashScreen::Config& config);
+/d/RainmeterManager/src/ui/splash_screen.h:362:    void HideSplash();
+/d/RainmeterManager/src/ui/splash_screen.h:375:    SplashManager() = default;
+/d/RainmeterManager/src/ui/splash_screen.h:376:    ~SplashManager() = default;
+/d/RainmeterManager/src/ui/splash_screen.h:379:    SplashManager(const SplashManager&) = delete;
+/d/RainmeterManager/src/ui/splash_screen.h:380:    SplashManager& operator=(const SplashManager&) = delete;
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:360:class ServiceLocatorPerformanceTest : public PerformanceTest {
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:364:        ServiceLocator::DestroyInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:368:        ServiceLocator::DestroyInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:393:TEST_F(ServiceLocatorPerformanceTest, ServiceResolutionThroughput) {
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:394:    ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:412:    Logger::GetInstance().Log(LogLevel::Info, "ServiceLocatorPerformance",
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:416:TEST_F(ServiceLocatorPerformanceTest, ConcurrentServiceResolution) {
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:417:    ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:459:// Splash Screen Performance Tests
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:460:class SplashScreenPerformanceTest : public PerformanceTest {
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:469:    CinematicSplashScreen::Config config_;
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:472:TEST_F(SplashScreenPerformanceTest, SplashScreenCreationSpeed) {
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:477:        CinematicSplashScreen splash(hInstance, config_);
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:493:    Logger::GetInstance().Log(LogLevel::Info, "SplashScreenPerformance",
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:575:TEST_F(MemoryLeakTest, ServiceLocatorMemoryLeak) {
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:579:        ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:594:            ServiceLocator::DestroyInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:598:    ServiceLocator::DestroyInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:601:TEST_F(MemoryLeakTest, ConfigManagerMemoryLeak) {
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:606:        ConfigManager& config = ConfigManager::GetInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:621:            ConfigManager::DestroyInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:625:    ConfigManager::DestroyInstance();
+/d/RainmeterManager/tests/performance/performance_memory_tests.cpp:652:            ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:176:// Splash Screen UI Tests
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:177:class SplashScreenUITest : public UIAutomationTest {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:190:    CinematicSplashScreen::Config splashConfig_;
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:193:TEST_F(SplashScreenUITest, SplashScreenCreation) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:195:    CinematicSplashScreen splashScreen(hInstance, splashConfig_);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:201:    EXPECT_TRUE(WaitForWindow(L"RainmeterCinematicSplash"));
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:211:TEST_F(SplashScreenUITest, SplashScreenDimensions) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:213:    CinematicSplashScreen splashScreen(hInstance, splashConfig_);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:216:    EXPECT_TRUE(WaitForWindow(L"RainmeterCinematicSplash"));
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:230:TEST_F(SplashScreenUITest, SplashScreenProgressUpdates) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:232:    CinematicSplashScreen splashScreen(hInstance, splashConfig_);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:235:    EXPECT_TRUE(WaitForWindow(L"RainmeterCinematicSplash"));
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:256:TEST_F(SplashScreenUITest, SplashScreenWaterDropAnimation) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:258:    CinematicSplashScreen splashConfig = splashConfig_;
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:261:    CinematicSplashScreen splashScreen(hInstance, splashConfig);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:264:    EXPECT_TRUE(WaitForWindow(L"RainmeterCinematicSplash"));
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:279:TEST_F(SplashScreenUITest, SplashScreenManualDismiss) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:283:    CinematicSplashScreen splashScreen(hInstance, splashConfig_);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:286:    EXPECT_TRUE(WaitForWindow(L"RainmeterCinematicSplash"));
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:392:// RAINMGRApp UI Integration Tests
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:393:class RAINMGRAppUITest : public UIAutomationTest {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:397:        RAINMGRApp::DestroyInstance();
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:401:        RAINMGRApp::DestroyInstance();
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:406:TEST_F(RAINMGRAppUITest, ApplicationWindowCreation) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:408:    RAINMGRApp& app = RAINMGRApp::GetInstance(hInstance);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:432:TEST_F(RAINMGRAppUITest, ApplicationMessageLoop) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:434:    RAINMGRApp& app = RAINMGRApp::GetInstance(hInstance);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:478:TEST_F(UIPerformanceTest, SplashScreenRenderingPerformance) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:481:    CinematicSplashScreen::Config config;
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:489:    CinematicSplashScreen splashScreen(hInstance, config);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:496:    // Splash screen should show quickly (within 1 second)
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:576:TEST_F(UIAccessibilityTest, SplashScreenAccessibility) {
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:579:    CinematicSplashScreen::Config config;
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:582:    CinematicSplashScreen splashScreen(hInstance, config);
+/d/RainmeterManager/tests/ui/ui_automation_tests.cpp:584:    EXPECT_TRUE(WaitForWindow(L"RainmeterCinematicSplash"));
+/d/RainmeterManager/tests/unit/core_tests.cpp:45:// Test fixture for ServiceLocator
+/d/RainmeterManager/tests/unit/core_tests.cpp:46:class ServiceLocatorTest : public ::testing::Test {
+/d/RainmeterManager/tests/unit/core_tests.cpp:49:        ServiceLocator::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:53:        ServiceLocator::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:69:// Test fixture for ConfigManager
+/d/RainmeterManager/tests/unit/core_tests.cpp:70:class ConfigManagerTest : public ::testing::Test {
+/d/RainmeterManager/tests/unit/core_tests.cpp:73:        ConfigManager::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:79:        ConfigManager::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:202:TEST_F(ServiceLocatorTest, ServiceRegistrationAndResolution) {
+/d/RainmeterManager/tests/unit/core_tests.cpp:203:    ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:217:TEST_F(ServiceLocatorTest, SingletonLifetime) {
+/d/RainmeterManager/tests/unit/core_tests.cpp:218:    ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:230:TEST_F(ServiceLocatorTest, NamedServices) {
+/d/RainmeterManager/tests/unit/core_tests.cpp:231:    ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:249:TEST_F(ServiceLocatorTest, ServiceUnregistration) {
+/d/RainmeterManager/tests/unit/core_tests.cpp:250:    ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:325:TEST_F(ConfigManagerTest, BasicConfigOperations) {
+/d/RainmeterManager/tests/unit/core_tests.cpp:326:    ConfigManager& config = ConfigManager::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:343:TEST_F(ConfigManagerTest, DefaultValues) {
+/d/RainmeterManager/tests/unit/core_tests.cpp:344:    ConfigManager& config = ConfigManager::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:355:TEST_F(ConfigManagerTest, ConfigPersistence) {
+/d/RainmeterManager/tests/unit/core_tests.cpp:358:        ConfigManager& config = ConfigManager::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:364:        ConfigManager::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:369:        ConfigManager& config = ConfigManager::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:431:        ServiceLocator::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:433:        ConfigManager::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:442:        ServiceLocator::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:444:        ConfigManager::DestroyInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:452:    ServiceLocator& serviceLocator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:454:    ConfigManager& config = ConfigManager::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:466:TEST_F(IntegrationTest, ServiceLocatorWithRealServices) {
+/d/RainmeterManager/tests/unit/core_tests.cpp:467:    ServiceLocator& locator = ServiceLocator::GetInstance();
+/d/RainmeterManager/tests/unit/core_tests.cpp:493:        ServiceLocator& locator = ServiceLocator::GetInstance();

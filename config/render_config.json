@@ -1,0 +1,154 @@
+{
+  "renderCore": {
+    "enabled": true,
+    "defaultBackend": "Auto",
+    "fallbackBackend": "SkiaSharp",
+    "processPath": "./renderprocess/RenderProcess.exe",
+    "processArguments": "--mode=production --logging=minimal",
+    "autoRestart": true,
+    "maxRestartAttempts": 3,
+    "restartDelayMs": 2000,
+    
+    "ipc": {
+      "mode": "Hybrid",
+      "sharedMemorySize": 4194304,
+      "commandTimeoutMs": 5000,
+      "resultTimeoutMs": 3000,
+      "enableCompression": false,
+      "enableEncryption": false
+    },
+    
+    "performance": {
+      "enableProfiling": true,
+      "profileIntervalMs": 1000,
+      "memoryThresholdMB": 500,
+      "cpuThresholdPercent": 80.0,
+      "enableAutoOptimization": true,
+      "frameRateLimiting": true,
+      "globalTargetFps": 60,
+      "enableVSync": true
+    },
+    
+    "debugging": {
+      "enableDebugLogging": false,
+      "logPerformanceMetrics": true,
+      "saveFrameCaptures": false,
+      "frameCapturePath": "./debug/frames/",
+      "enableWireframeMode": false,
+      "showRenderBounds": false
+    }
+  },
+  
+  "backends": {
+    "SkiaSharp": {
+      "enabled": true,
+      "priority": 1,
+      "hardwareAcceleration": true,
+      "textAntialiasing": true,
+      "imageFiltering": "High",
+      "maxTextureSize": 4096,
+      "enablePathCaching": true,
+      "multisampling": 4
+    },
+    
+    "Direct3D": {
+      "enabled": true,
+      "priority": 2,
+      "adapterIndex": -1,
+      "featureLevel": "11_0",
+      "enableDebugLayer": false,
+      "swapChainFormat": "R8G8B8A8_UNorm",
+      "depthStencilFormat": "D24_UNorm_S8_UInt",
+      "multisampling": 4,
+      "maxFrameLatency": 2
+    },
+    
+    "WebView": {
+      "enabled": true,
+      "priority": 3,
+      "userDataFolder": "./webview_data/",
+      "allowScriptDebugger": false,
+      "enableWebSecurity": true,
+      "enableJavaScript": true,
+      "enablePlugins": false,
+      "defaultZoomFactor": 1.0,
+      "userAgent": "RainmeterManager-WebView/1.0.0"
+    }
+  },
+  
+  "contentSources": {
+    "web": {
+      "enableCaching": true,
+      "cacheMaxSizeMB": 100,
+      "cacheExpirationHours": 24,
+      "userAgent": "RainmeterManager/1.0.0",
+      "timeoutMs": 10000,
+      "followRedirects": true,
+      "maxRedirects": 5,
+      "enableCookies": true,
+      "enableJavaScript": true
+    },
+    
+    "api": {
+      "enableCaching": true,
+      "cacheExpirationMinutes": 5,
+      "retryAttempts": 3,
+      "retryDelayMs": 1000,
+      "timeoutMs": 5000,
+      "rateLimitingEnabled": true,
+      "maxRequestsPerMinute": 60
+    },
+    
+    "media": {
+      "supportedFormats": ["mp4", "webm", "gif", "png", "jpg", "jpeg", "svg"],
+      "enableHardwareDecoding": true,
+      "maxFileSizeMB": 50,
+      "enableStreaming": true,
+      "bufferSizeMs": 3000,
+      "audioEnabled": false
+    },
+    
+    "office": {
+      "enabled": false,
+      "supportedFormats": ["xlsx", "docx", "pptx"],
+      "renderDPI": 96,
+      "maxFileSizeMB": 10,
+      "enableMacros": false,
+      "timeoutMs": 30000
+    }
+  },
+  
+  "monitors": {
+    "enableMultiMonitorSupport": true,
+    "autoDetectChanges": true,
+    "dpiAwareness": "PerMonitorV2",
+    "scalingMode": "Auto",
+    "renderOnAllMonitors": false,
+    "primaryMonitorOnly": false
+  },
+  
+  "widgets": {
+    "maxConcurrentWidgets": 50,
+    "enableWidgetPools": true,
+    "widgetPoolSize": 10,
+    "enableSharedResources": true,
+    "defaultProperties": {
+      "opacity": 1.0,
+      "visible": true,
+      "clickThrough": false,
+      "topMost": false,
+      "targetFps": 60,
+      "enableVSync": true
+    }
+  },
+  
+  "security": {
+    "enableContentFiltering": true,
+    "allowedDomains": ["*.github.com", "*.googleapis.com", "localhost"],
+    "blockedDomains": [],
+    "enableScriptSandboxing": true,
+    "allowFileAccess": false,
+    "allowNetworkAccess": true,
+    "validateCertificates": true
+  }
+}

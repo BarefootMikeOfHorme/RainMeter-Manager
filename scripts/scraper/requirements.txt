@@ -1,0 +1,27 @@
+# RainmeterUI Complete Scraper Dependencies
+
+# Web scraping and HTTP requests
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+lxml>=4.9.0
+
+# HTTP adapters and retry logic
+urllib3>=1.26.0
+
+# Archive extraction
+rarfile>=4.0
+py7zr>=0.20.0
+
+# Standard library enhancements (usually included with Python 3.7+)
+# But included for completeness
+dataclasses>=0.6; python_version<"3.7"
+
+# Optional: for better performance
+# cchardet>=2.1.7  # Faster character encoding detection
+# aiodns>=3.0.0    # Async DNS resolution (if adding async support later)
+
+# Development/testing dependencies (optional)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=22.0.0
+# mypy>=0.991

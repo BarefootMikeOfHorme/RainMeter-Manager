@@ -1,0 +1,60 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cmake-configure",
+            "type": "shell",
+            "command": "cmake -S . -B build -G \"Visual Studio 16 2019\" -A x64",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "build-debug",
+            "type": "shell",
+            "command": "cmake --build build --config Debug",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": ["cmake-configure"],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build-release",
+            "type": "shell",
+            "command": "cmake --build build --config Release",
+            "group": "build",
+            "dependsOn": ["cmake-configure"],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "cmake --build build --target clean",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "run-tests",
+            "type": "shell",
+            "command": "ctest -C Debug --output-on-failure",
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "dependsOn": ["build-debug"],
+            "problemMatcher": []
+        },
+        {
+            "label": "build-installer",
+            "type": "shell",
+            "command": "cmake --build build --config Release --target package",
+            "group": "build",
+            "dependsOn": ["build-release"],
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,59 @@
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.suo
+*.user
+*.opendb
+*.VC.db
+*.VC.opendb
+*.ipch
+
+# CMake and build trees
+build/
+out/
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+CMakeSettings.json
+cmake-build*/
+*.tlog
+*.recipe
+*.lastbuildstate
+*.log
+
+# MSVC build outputs
+Debug/
+Release/
+x64/
+x86/
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.lib
+
+# .NET build outputs (examples or others)
+**/bin/
+**/obj/
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Misc IDE
+*.sln.docstates
+.vscode/.history/
+
+# Windows reserved artifact (if created inadvertently)
+nul
+
+# Do not ignore backups or change logs
+!changes/
+!changes/**
+!*.zip
+!*.tar.gz
+!*.tgz
+

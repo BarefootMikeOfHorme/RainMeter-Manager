@@ -1,0 +1,3 @@
+/d/RainmeterManager/code_fixes.diff
+/d/RainmeterManager/main.cpp.diff
+/d/RainmeterManager/security.cpp.diff

@@ -1,0 +1,4 @@
+timestamp_utc=20250809-201213
+root=/d/RainmeterManager
+report=/d/RainmeterManager/report/20250809-201213
+build=/d/RainmeterManager/build
