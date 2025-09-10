@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
+#include <winreg.h>
 
 // Static member definitions
 std::unique_ptr<std::ofstream> Logger::logFile = nullptr;
@@ -18,20 +19,19 @@ std::mutex Logger::queueMutex;
 bool Logger::shutdownRequested = false;
 
 bool Logger::initialize(const std::string& logFilePath, LogRotationConfig config) {
-    std::lock_guard<std::mutex> lock(logMutex);
-    
-    rotationConfig = config;
-    logFile = std::make_unique<std::ofstream>(logFilePath, std::ios::app);
-    
-    if (!logFile->is_open()) {
-        std::cerr << "Failed to open log file: " << logFilePath << std::endl;
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(logMutex);
+        rotationConfig = config;
+        logFile = std::make_unique<std::ofstream>(logFilePath, std::ios::app);
+        if (!logFile->is_open()) {
+            std::cerr << "Failed to open log file: " << logFilePath << std::endl;
+            return false;
+        }
+        if (asyncLoggingEnabled) {
+            loggingThread = std::thread(processLogQueue);
+        }
     }
-    
-    if (asyncLoggingEnabled) {
-        loggingThread = std::thread(processLogQueue);
-    }
-    
+    // Log after releasing logMutex to avoid re-entrancy deadlock
     LOG_INFO("Logger initialized successfully");
     return true;
 }
@@ -171,11 +171,18 @@ void Logger::logSecurityEvent(const std::string& event, const std::string& detai
 
 std::string Logger::getCurrentTimestamp() {
     auto now = std::chrono::system_clock::now();
-    auto time_t = std::chrono::system_clock::to_time_t(now);
+    auto t = std::chrono::system_clock::to_time_t(now);
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-    
+
+    std::tm localTm{};
+#if defined(_WIN32)
+    localtime_s(&localTm, &t);
+#else
+    localtime_r(&t, &localTm);
+#endif
+
     std::stringstream ss;
-    ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
+    ss << std::put_time(&localTm, "%Y-%m-%d %H:%M:%S");
     ss << '.' << std::setfill('0') << std::setw(3) << ms.count();
     return ss.str();
 }
@@ -283,32 +290,46 @@ void Logger::shutdown() {
 //=============================================================================
 
 void Logger::setLogLevel(LogLevel minLevel) {
-    std::lock_guard<std::mutex> lock(logMutex);
-    minLogLevel = minLevel;
-    LOG_INFO("Log level set to: " + logLevelToString(minLevel));
+    std::string msg;
+    {
+        std::lock_guard<std::mutex> lock(logMutex);
+        Logger::minLogLevel = minLevel;
+        msg = std::string("Log level set to: ") + logLevelToString(minLevel);
+    }
+    LOG_INFO(msg);
 }
 
 void Logger::enableAsyncLogging(bool enable) {
-    std::lock_guard<std::mutex> lock(logMutex);
-    if (asyncLoggingEnabled != enable) {
-        asyncLoggingEnabled = enable;
-        if (enable && !loggingThread.joinable()) {
-            loggingThread = std::thread(processLogQueue);
-            LOG_INFO("Async logging enabled");
-        } else if (!enable && loggingThread.joinable()) {
-            shutdownRequested = true;
-            logCondition.notify_all();
-            loggingThread.join();
-            shutdownRequested = false;
-            LOG_INFO("Async logging disabled");
+    bool justEnabled = false;
+    bool justDisabled = false;
+    {
+        std::lock_guard<std::mutex> lock(logMutex);
+        if (asyncLoggingEnabled != enable) {
+            asyncLoggingEnabled = enable;
+            if (enable && !loggingThread.joinable()) {
+                loggingThread = std::thread(processLogQueue);
+                justEnabled = true;
+            } else if (!enable && loggingThread.joinable()) {
+                shutdownRequested = true;
+                logCondition.notify_all();
+                loggingThread.join();
+                shutdownRequested = false;
+                justDisabled = true;
+            }
         }
     }
+    if (justEnabled) LOG_INFO("Async logging enabled");
+    if (justDisabled) LOG_INFO("Async logging disabled");
 }
 
 void Logger::enableConsoleOutput(bool enable) {
-    std::lock_guard<std::mutex> lock(logMutex);
-    consoleOutputEnabled = enable;
-    LOG_INFO(std::string("Console output ") + (enable ? "enabled" : "disabled"));
+    bool now;
+    {
+        std::lock_guard<std::mutex> lock(logMutex);
+        consoleOutputEnabled = enable;
+        now = consoleOutputEnabled;
+    }
+    LOG_INFO(std::string("Console output ") + (now ? "enabled" : "disabled"));
 }
 
 void Logger::trace(const std::string& message) {
@@ -385,12 +406,27 @@ void Logger::logAccessAttempt(const std::string& resource, bool success, const s
 void Logger::dumpSystemInfo() {
     LOG_INFO("=== System Information Dump ===");
     
-    // OS Version
-    OSVERSIONINFOEX osvi = {0};
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    if (GetVersionEx((OSVERSIONINFO*)&osvi)) {
-        LOG_INFO("OS Version: " + std::to_string(osvi.dwMajorVersion) + "." + 
-                std::to_string(osvi.dwMinorVersion) + " Build " + std::to_string(osvi.dwBuildNumber));
+    // OS Version (query via registry to avoid deprecated APIs)
+    HKEY hKey;
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                      L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
+                      0,
+                      KEY_READ | KEY_WOW64_64KEY,
+                      &hKey) == ERROR_SUCCESS) {
+        DWORD major = 0, minor = 0;
+        DWORD size = sizeof(DWORD);
+        (void)RegGetValueW(hKey, nullptr, L"CurrentMajorVersionNumber", RRF_RT_DWORD, nullptr, &major, &size);
+        size = sizeof(DWORD);
+        (void)RegGetValueW(hKey, nullptr, L"CurrentMinorVersionNumber", RRF_RT_DWORD, nullptr, &minor, &size);
+        wchar_t build[64] = {0};
+        DWORD buildSize = sizeof(build);
+        if (RegGetValueW(hKey, nullptr, L"CurrentBuildNumber", RRF_RT_REG_SZ, nullptr, &build, &buildSize) != ERROR_SUCCESS) {
+            build[0] = L'\0';
+        }
+        RegCloseKey(hKey);
+        std::wstring wbuild(build);
+        std::string sbuild(wbuild.begin(), wbuild.end());
+        LOG_INFO("OS Version: " + std::to_string(major) + "." + std::to_string(minor) + " Build " + sbuild);
     }
     
     // Memory Information
