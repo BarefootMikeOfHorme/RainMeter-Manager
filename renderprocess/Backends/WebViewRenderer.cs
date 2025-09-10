@@ -2,13 +2,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using RenderProcess.Interfaces;
+using RenderProcess.Runtime;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Net;
 using System.Runtime.InteropServices;
+// using System.Windows.Forms;
 using System.Collections.Generic;
 
 namespace RenderProcess.Backends;
@@ -40,11 +44,20 @@ public class WebViewRenderer : IRenderBackend, IDisposable
     private long _frameCount;
     private DateTime _lastRenderTime;
     private readonly Stopwatch _performanceTimer;
+    private TrustedSitesConfig _trustedConfig;
+    private string _trustedConfigPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RainmeterManager", "trusted_sites.json");
+    private string _currentTopHost = string.Empty;
+    private bool _currentHostRestricted = false;
     
     // Enterprise features
     private readonly Dictionary<string, object> _injectedObjects;
     private bool _securityEnabled = true;
     private readonly HashSet<string> _allowedDomains;
+
+    // Trust decisions for sites at runtime
+    private enum SiteTrustLevel { AllowOnce, AlwaysAllow, Restricted, External, Block }
+    private readonly Dictionary<string, SiteTrustLevel> _siteTrust = new();
+    private readonly HashSet<string> _onceAllowedHosts = new();
     
     // Events
     public event EventHandler<RenderErrorEventArgs>? RenderError;
@@ -61,9 +74,33 @@ public class WebViewRenderer : IRenderBackend, IDisposable
         
         // Default allowed domains for enterprise use
         _allowedDomains.Add("localhost");
+        _allowedDomains.Add("127.0.0.1");
+        _allowedDomains.Add("::1");
         _allowedDomains.Add("*.github.com");
         _allowedDomains.Add("*.googleapis.com");
         _allowedDomains.Add("*.microsoft.com");
+        _allowedDomains.Add("api.nasa.gov");
+        _allowedDomains.Add("images-api.nasa.gov");
+        _allowedDomains.Add("images-assets.nasa.gov");
+        _allowedDomains.Add("radar.weather.gov");
+        _allowedDomains.Add("api.weather.gov");
+        _allowedDomains.Add("earthquake.usgs.gov");
+        _allowedDomains.Add("api.open-meteo.com");
+        _allowedDomains.Add("tile.openstreetmap.org");
+        _allowedDomains.Add("*.wikimedia.org");
+        _allowedDomains.Add("*.wikipedia.org");
+        _allowedDomains.Add("www.esa.int");
+        _allowedDomains.Add("esa.int");
+        _allowedDomains.Add("www.youtube-nocookie.com");
+        _allowedDomains.Add("youtube-nocookie.com");
+        _allowedDomains.Add("youtu.be");
+        _allowedDomains.Add("www.youtube.com");
+        _allowedDomains.Add("youtube.com");
+        _allowedDomains.Add("player.vimeo.com");
+        _allowedDomains.Add("vimeo.com");
+        
+        // Load trusted sites config
+        _trustedConfig = TrustedSitesConfig.Load(_trustedConfigPath);
         
         _logger.LogInformation("WebView2 enterprise renderer initialized");
     }
@@ -97,6 +134,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             
             // Setup enterprise security features
             await ConfigureEnterpriseSecurity();
+            ApplySecurityProfileForHost(null);
             
             // Setup performance monitoring
             SetupPerformanceMonitoring();
@@ -181,7 +219,6 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             
             if (_webView != null)
             {
-                _webView.CoreWebView2?.Stop();
                 _webView.Dispose();
                 _webView = null;
             }
@@ -189,7 +226,6 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             _hostForm?.Dispose();
             _hostForm = null;
             
-            _environment?.Dispose();
             _environment = null;
             
             _injectedObjects.Clear();
@@ -372,8 +408,8 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
                                              "RainmeterManager", "WebView");
             
-            var environmentOptions = CoreWebView2EnvironmentOptions.CreateWithAdditionalBrowserArguments(
-                "--disable-web-security --disable-features=VizDisplayCompositor --enable-gpu-rasterization");
+            var environmentOptions = new CoreWebView2EnvironmentOptions();
+            environmentOptions.AdditionalBrowserArguments = "--disable-web-security --disable-features=VizDisplayCompositor --enable-gpu-rasterization";
             
             _environment = await CoreWebView2Environment.CreateAsync(
                 browserExecutableFolder: null,
@@ -418,16 +454,17 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             settings.AreBrowserAcceleratorKeysEnabled = false; // Disable shortcuts
             
             // Setup content security policies
-            await _webView.CoreWebView2.AddWebResourceRequestedFilterAsync("*", CoreWebView2WebResourceContext.All);
+            _webView.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
             _webView.CoreWebView2.WebResourceRequested += OnWebResourceRequested;
             
             // Setup navigation security
             _webView.CoreWebView2.NavigationStarting += OnNavigationStarting;
             _webView.CoreWebView2.FrameNavigationStarting += OnFrameNavigationStarting;
+            _webView.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
             
             // Setup error handling
             _webView.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
-            _webView.CoreWebView2.ScriptException += OnScriptException;
+            // _webView.CoreWebView2.ScriptException += OnScriptException; // Disabled: event args type not available in current WebView2 package
             
             _logger.LogDebug("Enterprise security configuration applied");
         }
@@ -447,13 +484,13 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             // Add authentication headers if provided
             if (!string.IsNullOrEmpty(_contentParameters.AuthToken))
             {
-                var headers = $"Authorization: Bearer {_contentParameters.AuthToken}";
-                await _webView.CoreWebView2.NavigateWithWebResourceRequestAsync(
-                    _environment!.CreateWebResourceRequest("GET", url, null, headers));
+                var headers = $"Authorization: Bearer {_contentParameters.AuthToken}\r\n";
+                var request = _environment!.CreateWebResourceRequest(url, "GET", null, headers);
+                _webView.CoreWebView2.NavigateWithWebResourceRequest(request);
             }
             else
             {
-                await _webView.CoreWebView2.NavigateAsync(url);
+                _webView.CoreWebView2.Navigate(url);
             }
             
             _logger.LogDebug($"Navigated to URL: {url}");
@@ -532,7 +569,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
                 <div style='font-family: Consolas, monospace;'>
                     <h3 style='color: #00ff88; margin-top: 0;'>API Response</h3>
                     <div style='background: #2a2a2a; padding: 15px; border-radius: 8px; overflow: auto;'>
-                        <pre style='color: #e0e0e0; margin: 0; white-space: pre-wrap;'>{System.Web.HttpUtility.HtmlEncode(apiResponse)}</pre>
+                        <pre style='color: #e0e0e0; margin: 0; white-space: pre-wrap;'>{System.Net.WebUtility.HtmlEncode(apiResponse)}</pre>
                     </div>
                 </div>";
             
@@ -573,7 +610,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
                         <div style='font-family: Consolas, monospace;'>
                             <h3 style='color: #4a9eff; margin-top: 0;'>{Path.GetFileName(filePath)}</h3>
                             <div style='background: #2a2a2a; padding: 15px; border-radius: 8px; overflow: auto;'>
-                                <pre style='color: #e0e0e0; margin: 0; white-space: pre-wrap;'>{System.Web.HttpUtility.HtmlEncode(textContent)}</pre>
+                                <pre style='color: #e0e0e0; margin: 0; white-space: pre-wrap;'>{System.Net.WebUtility.HtmlEncode(textContent)}</pre>
                             </div>
                         </div>";
                     await LoadStaticContent(formattedContent);
@@ -607,6 +644,24 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             {
                 _logger.LogWarning($"Blocked request to: {uri}");
                 e.Response = _environment!.CreateWebResourceResponse(null, 403, "Forbidden", "");
+                return;
+            }
+
+            // When in restricted mode for this top-level host, block third-party requests
+            if (_currentHostRestricted && !string.IsNullOrEmpty(_currentTopHost))
+            {
+                try
+                {
+                    var reqHost = new Uri(uri).Host.ToLowerInvariant();
+                    if (!string.Equals(reqHost, _currentTopHost, StringComparison.Ordinal))
+                    {
+                        // Allow same host only; block others
+                        _logger.LogDebug($"Restricted mode: blocking third-party resource {uri}");
+                        e.Response = _environment!.CreateWebResourceResponse(null, 403, "Forbidden", "");
+                        return;
+                    }
+                }
+                catch { }
             }
         }
         catch (Exception ex)
@@ -617,12 +672,39 @@ public class WebViewRenderer : IRenderBackend, IDisposable
 
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
+        _currentTopHost = string.Empty;
+        _currentHostRestricted = false;
         try
         {
-            if (!IsUrlAllowed(e.Uri))
+            var url = e.Uri;
+            try { _currentTopHost = new Uri(url).Host.ToLowerInvariant(); } catch { _currentTopHost = string.Empty; }
+
+            if (IsUrlAllowed(url))
             {
-                _logger.LogWarning($"Blocked navigation to: {e.Uri}");
-                e.Cancel = true;
+                ApplySecurityProfileForHost(_currentTopHost);
+                return;
+            }
+
+            switch (DecideTrustForUrl(url))
+            {
+                case SiteTrustLevel.AlwaysAllow:
+                    ApplySecurityProfileForHost(_currentTopHost);
+                    e.Cancel = false; return;
+                case SiteTrustLevel.AllowOnce:
+                    ApplySecurityProfileForHost(_currentTopHost);
+                    e.Cancel = false; return;
+                case SiteTrustLevel.Restricted:
+                    _trustedConfig.Sites[_currentTopHost] = SiteTrustPolicy.Restricted;
+                    _trustedConfig.Save(_trustedConfigPath);
+                    ApplySecurityProfileForHost(_currentTopHost);
+                    e.Cancel = false; return;
+                case SiteTrustLevel.External:
+                    try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
+                    e.Cancel = true; return;
+                case SiteTrustLevel.Block:
+                default:
+                    _logger.LogWarning($"Blocked navigation to: {url}");
+                    e.Cancel = true; return;
             }
         }
         catch (Exception ex)
@@ -657,17 +739,59 @@ public class WebViewRenderer : IRenderBackend, IDisposable
         }
     }
 
-    private void OnScriptException(object? sender, CoreWebView2ScriptExceptionEventArgs e)
+    private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
     {
         try
         {
-            _logger.LogWarning($"JavaScript error: {e.Name} - {e.Message}");
+            var target = e.Uri;
+            if (string.IsNullOrWhiteSpace(target)) return;
+
+            if (IsUrlAllowed(target))
+            {
+                _webView?.CoreWebView2?.Navigate(target);
+                e.Handled = true; return;
+            }
+
+            switch (DecideTrustForUrl(target))
+            {
+                case SiteTrustLevel.AlwaysAllow:
+                case SiteTrustLevel.AllowOnce:
+                    try { _currentTopHost = new Uri(target).Host.ToLowerInvariant(); } catch { _currentTopHost = string.Empty; }
+                    ApplySecurityProfileForHost(_currentTopHost);
+                    _webView?.CoreWebView2?.Navigate(target); e.Handled = true; return;
+                case SiteTrustLevel.Restricted:
+                    try { _currentTopHost = new Uri(target).Host.ToLowerInvariant(); } catch { _currentTopHost = string.Empty; }
+                    _trustedConfig.Sites[_currentTopHost] = SiteTrustPolicy.Restricted;
+                    _trustedConfig.Save(_trustedConfigPath);
+                    ApplySecurityProfileForHost(_currentTopHost);
+                    _webView?.CoreWebView2?.Navigate(target); e.Handled = true; return;
+                case SiteTrustLevel.External:
+                    try { Process.Start(new ProcessStartInfo(target) { UseShellExecute = true }); } catch { }
+                    e.Handled = true; return;
+                case SiteTrustLevel.Block:
+                default:
+                    e.Handled = true; return;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling new window request");
+        }
+    }
+
+#if false
+    private void OnScriptException(object? sender, object e)
+    {
+        try
+        {
+            _logger.LogWarning($"JavaScript error reported by WebView2");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in script exception handler");
         }
     }
+#endif
 
     #endregion
 
@@ -692,8 +816,26 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             }
             
             // Allow localhost and file:// for development
-            if (host == "localhost" || host == "127.0.0.1" || uri.Scheme == "file")
+            if (host == "localhost" || host == "127.0.0.1" || host == "::1" || uri.Scheme == "file")
                 return true;
+
+            // Allow a one-time host if previously selected
+            if (_onceAllowedHosts.Contains(host))
+            {
+                _onceAllowedHosts.Remove(host);
+                return true;
+            }
+
+            // Allow any 127.x.x.x loopback
+            if (IPAddress.TryParse(host, out var ip))
+            {
+                if (IPAddress.IsLoopback(ip)) return true;
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    var parts = host.Split('.');
+                    if (parts.Length == 4 && parts[0] == "127") return true;
+                }
+            }
             
             return false;
         }
@@ -730,7 +872,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
 
     private void UpdatePerformanceMetrics()
     {
-        _metrics.TotalFrames = _frameCount;
+        _metrics.TotalFrames = (ulong)_frameCount;
         
         // Update every few frames to avoid overhead
         if (_frameCount % 60 == 0)
@@ -744,12 +886,159 @@ public class WebViewRenderer : IRenderBackend, IDisposable
         try
         {
             var process = Process.GetCurrentProcess();
-            _metrics.MemoryUsageMB = process.WorkingSet64 / 1024 / 1024;
+            _metrics.MemoryUsageMB = (ulong)(process.WorkingSet64 / 1024 / 1024);
             _metrics.CpuUsagePercent = (float)process.TotalProcessorTime.TotalMilliseconds;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating performance metrics");
+        }
+    }
+
+    private void ApplySecurityProfileForHost(string? host)
+    {
+        if (_webView?.CoreWebView2 == null) return;
+        var settings = _webView.CoreWebView2.Settings;
+        _currentHostRestricted = false;
+
+        SiteTrustPolicy policy = SiteTrustPolicy.AlwaysAllow;
+        if (!string.IsNullOrEmpty(host))
+        {
+            if (_trustedConfig.Sites.TryGetValue(host, out var p))
+            {
+                policy = p;
+            }
+        }
+
+        if (policy == SiteTrustPolicy.Restricted)
+        {
+            _currentHostRestricted = true;
+            settings.IsScriptEnabled = false;
+            settings.AreDevToolsEnabled = false;
+            settings.AreHostObjectsAllowed = false;
+            settings.IsWebMessageEnabled = false;
+            settings.AreDefaultScriptDialogsEnabled = false;
+        }
+        else
+        {
+            settings.IsScriptEnabled = true;
+            settings.AreDevToolsEnabled = false; // keep disabled for prod
+            settings.AreHostObjectsAllowed = false;
+            settings.IsWebMessageEnabled = true;
+            settings.AreDefaultScriptDialogsEnabled = false;
+        }
+    }
+
+    private SiteTrustLevel DecideTrustForUrl(string url)
+    {
+        try
+        {
+            var uri = new Uri(url);
+            var host = uri.Host.ToLowerInvariant();
+
+            if (_siteTrust.TryGetValue(host, out var existing))
+            {
+                if (existing == SiteTrustLevel.AllowOnce)
+                {
+                    _onceAllowedHosts.Add(host);
+                }
+                return existing;
+            }
+
+            // Show prompt on UI thread
+            SiteTrustLevel decision = SiteTrustLevel.Block;
+            void Prompt() {
+                using (var dlg = new TrustPromptForm(host, url))
+                {
+                    var res = dlg.ShowDialog(_hostForm);
+                    decision = dlg.Decision;
+                }
+            }
+            if (_hostForm != null && _hostForm.InvokeRequired)
+                _hostForm.Invoke((Action)Prompt);
+            else
+                Prompt();
+
+            switch (decision)
+            {
+                case SiteTrustLevel.AlwaysAllow:
+                    _siteTrust[host] = SiteTrustLevel.AlwaysAllow;
+                    _allowedDomains.Add(host);
+                    _trustedConfig.Sites[host] = SiteTrustPolicy.AlwaysAllow;
+                    _trustedConfig.Save(_trustedConfigPath);
+                    break;
+                case SiteTrustLevel.Restricted:
+                    _siteTrust[host] = SiteTrustLevel.Restricted;
+                    _allowedDomains.Add(host);
+                    _trustedConfig.Sites[host] = SiteTrustPolicy.Restricted;
+                    _trustedConfig.Save(_trustedConfigPath);
+                    break;
+                case SiteTrustLevel.AllowOnce:
+                    _siteTrust[host] = SiteTrustLevel.AllowOnce;
+                    _onceAllowedHosts.Add(host);
+                    break;
+                case SiteTrustLevel.External:
+                    _siteTrust[host] = SiteTrustLevel.External;
+                    _trustedConfig.Sites[host] = SiteTrustPolicy.External;
+                    _trustedConfig.Save(_trustedConfigPath);
+                    break;
+                case SiteTrustLevel.Block:
+                default:
+                    _siteTrust[host] = SiteTrustLevel.Block;
+                    _trustedConfig.Sites[host] = SiteTrustPolicy.Block;
+                    _trustedConfig.Save(_trustedConfigPath);
+                    break;
+            }
+            return decision;
+        }
+        catch
+        {
+            return SiteTrustLevel.Block;
+        }
+    }
+
+    private sealed class TrustPromptForm : Form
+    {
+        public SiteTrustLevel Decision { get; private set; } = SiteTrustLevel.Block;
+        public TrustPromptForm(string host, string url)
+        {
+            Text = "Site trust";
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterScreen;
+            MinimizeBox = false; MaximizeBox = false;
+            ShowInTaskbar = false; TopMost = true;
+            ClientSize = new Size(520, 180);
+
+            var label = new Label
+            {
+                AutoSize = false,
+                Text = $"This site is not on the allowlist:\n{host}\n\nHow would you like to proceed?",
+                Dock = DockStyle.Top,
+                Height = 80
+            };
+            Controls.Add(label);
+
+            var panel = new FlowLayoutPanel { Dock = DockStyle.Bottom, FlowDirection = FlowDirection.RightToLeft, Height = 50, Padding = new Padding(10) };
+            Controls.Add(panel);
+
+            Button btnBlock = new Button { Text = "Block", Width = 100 };
+            btnBlock.Click += (s, e) => { Decision = SiteTrustLevel.Block; DialogResult = DialogResult.OK; };
+            Button btnExternal = new Button { Text = "Open in Browser", Width = 130 };
+            btnExternal.Click += (s, e) => { Decision = SiteTrustLevel.External; DialogResult = DialogResult.OK; };
+            Button btnRestricted = new Button { Text = "Restricted (Safe)", Width = 140 };
+            btnRestricted.Click += (s, e) => { Decision = SiteTrustLevel.Restricted; DialogResult = DialogResult.OK; };
+            Button btnAlways = new Button { Text = "Always Allow", Width = 120 };
+            btnAlways.Click += (s, e) => { Decision = SiteTrustLevel.AlwaysAllow; DialogResult = DialogResult.OK; };
+            Button btnOnce = new Button { Text = "Allow Once", Width = 110 };
+            btnOnce.Click += (s, e) => { Decision = SiteTrustLevel.AllowOnce; DialogResult = DialogResult.OK; };
+
+            panel.Controls.Add(btnBlock);
+            panel.Controls.Add(btnExternal);
+            panel.Controls.Add(btnAlways);
+            panel.Controls.Add(btnRestricted);
+            panel.Controls.Add(btnOnce);
+
+            AcceptButton = btnOnce;
         }
     }
 

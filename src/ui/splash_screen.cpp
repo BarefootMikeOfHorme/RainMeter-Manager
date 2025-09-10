@@ -155,7 +155,20 @@ bool CinematicSplashScreen::Show() {
     auto now = std::chrono::steady_clock::now();
     startTime_ = now;
     lastFrameTime_ = now;
+    lastFPSUpdate_ = now;
+
+    // Initialize and set first hint
+    InitializeMessages();
+    if (config_.enableAutoMessages) {
+        std::lock_guard<std::mutex> lock(stateMutex_);
+        auxStatus_ = L"Hint: If this takes a while, the splash stays up to 12s.";
+        firstHintShown_ = false;
+        lastMessageSwap_ = now;
+    }
     
+    // Start lifecycle watchdog (handles min/max timing and auto-dismiss)
+    StartLifecycleWatchdog();
+
     // Start with a water drop after 1 second
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     TriggerWaterDrop();
@@ -392,6 +405,7 @@ bool CinematicSplashScreen::LoadResources() {
 }
 
 void CinematicSplashScreen::CleanupResources() {
+    StopLifecycleWatchdog();
     if (rippleGradientBrush_) rippleGradientBrush_->Release();
     if (waterGradientBrush_) waterGradientBrush_->Release();
     if (leafBrush_) leafBrush_->Release();
@@ -480,6 +494,25 @@ void CinematicSplashScreen::OnPaint() {
     
     // Render UI elements
     RenderUI();
+
+    // Draw auto message (auxStatus_) below status if present
+    if (statusFormat_ && !auxStatus_.empty()) {
+        ID2D1SolidColorBrush* hintBrush = nullptr;
+        renderTarget_->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.6f), &hintBrush);
+        if (hintBrush) {
+            D2D1_SIZE_F size = renderTarget_->GetSize();
+            float progressY = size.height * 0.8f;
+            D2D1_RECT_F hintRect = D2D1::RectF(0, progressY + 40, size.width, progressY + 70);
+            renderTarget_->DrawText(
+                auxStatus_.c_str(),
+                static_cast<UINT32>(auxStatus_.length()),
+                statusFormat_,
+                hintRect,
+                hintBrush
+            );
+            hintBrush->Release();
+        }
+    }
     
     HRESULT hr = renderTarget_->EndDraw();
     if (hr == D2DERR_RECREATE_TARGET) {
@@ -699,6 +732,23 @@ void CinematicSplashScreen::AnimationThreadFunc() {
         
         // Update leaves
         UpdateLeaves(deltaTime);
+
+        // Rotate witty messages
+        if (config_.enableAutoMessages) {
+            auto now2 = std::chrono::steady_clock::now();
+            if (now2 - lastMessageSwap_ >= std::chrono::seconds(4)) {
+                std::lock_guard<std::mutex> lock(stateMutex_);
+                if (!firstHintShown_) {
+                    firstHintShown_ = true;
+                    wittyIndex_ = 0;
+                    auxStatus_ = wittyMessages_.empty() ? L"" : wittyMessages_[wittyIndex_];
+                } else if (!wittyMessages_.empty()) {
+                    wittyIndex_ = (wittyIndex_ + 1) % wittyMessages_.size();
+                    auxStatus_ = wittyMessages_[wittyIndex_];
+                }
+                lastMessageSwap_ = now2;
+            }
+        }
         
         // Trigger window repaint
         if (splashWindow_) {
@@ -945,6 +995,51 @@ void CinematicSplashScreen::SetCompletionCallback(CompletionCallback callback) {
 
 void CinematicSplashScreen::Dismiss() {
     Hide();
+}
+
+void CinematicSplashScreen::StartLifecycleWatchdog() {
+    if (lifecycleActive_) return;
+    lifecycleActive_ = true;
+    lifecycleThread_ = std::thread([this]() {
+        const auto minSpan = std::chrono::milliseconds(std::max(0, config_.minDisplayTimeMs));
+        const auto maxSpan = std::chrono::milliseconds(std::max(config_.minDisplayTimeMs, config_.maxDisplayTimeMs));
+        auto start = startTime_;
+        for (;;) {
+            if (shouldStopAnimation_) break;
+            auto now = std::chrono::steady_clock::now();
+            auto elapsed = now - start;
+            bool minElapsed = elapsed >= minSpan;
+            bool maxElapsed = elapsed >= maxSpan;
+            int progress = 0;
+            {
+                std::lock_guard<std::mutex> lock(stateMutex_);
+                progress = currentProgress_;
+            }
+            if (minElapsed && (progress >= 100 || (!config_.extendIfLoading) || maxElapsed)) {
+                // Safe auto-dismiss
+                Dismiss();
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        lifecycleActive_ = false;
+    });
+}
+
+void CinematicSplashScreen::StopLifecycleWatchdog() {
+    if (lifecycleThread_.joinable()) {
+        lifecycleThread_.join();
+    }
+}
+
+void CinematicSplashScreen::InitializeMessages() {
+    wittyMessages_.clear();
+    // Short, safe quips for rotation (expandable later)
+    wittyMessages_.push_back(L"Dad joke: I used to hate facial hair… but then it grew on me.");
+    wittyMessages_.push_back(L"Tip: You can enable/disable providers in Options → Dashboard.");
+    wittyMessages_.push_back(L"Life advice: Small steps every day beat big steps someday.");
+    wittyMessages_.push_back(L"Dad joke: Why don’t skeletons fight each other? They don’t have the guts.");
+    wittyMessages_.push_back(L"Pro tip: Keep monitoring on; control is opt-in and safe by default.");
 }
 
 bool CinematicSplashScreen::ProcessMessages() {

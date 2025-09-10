@@ -1,6 +1,10 @@
 #ifndef COMMUNITY_FEEDBACK_H
 #define COMMUNITY_FEEDBACK_H
 
+#include "../../core/feature_flags.h"
+
+#if RM_ENABLE_COMMUNITY_WIDGETS
+
 #include "ui_framework.h"
 #include "security.h"
 #include "error_handling.h"
@@ -417,5 +421,14 @@ namespace CommunityUtils {
     std::string exportFeedListToOpml(const std::vector<std::string>& feedUrls);
     bool importFeedListFromOpml(const std::string& opml, std::vector<std::string>& feedUrls);
 }
+
+#endif // RM_ENABLE_COMMUNITY_WIDGETS
+
+#else // RM_ENABLE_COMMUNITY_WIDGETS
+
+// Community widgets are disabled at compile time. This header provides no-op
+// placeholders to avoid accidental references.
+
+#endif // RM_ENABLE_COMMUNITY_WIDGETS
 
 #endif // COMMUNITY_FEEDBACK_H

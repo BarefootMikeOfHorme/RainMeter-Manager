@@ -2,6 +2,7 @@
 #include "../core/error_handling.h"
 #include "../core/security_adapter.h"
 #include "../core/logger_adapter.h"
+#include "../ui/splash_screen.h"
 #include <filesystem>
 #include <shlwapi.h>
 #include <atomic>
@@ -86,12 +87,62 @@ bool RAINMGRApp::Initialize() {
             return false;
         }
         
-        // Create main window
+        // Create main window (hidden); we'll show it after splash completes
         if (!CreateMainWindow()) {
             HandleFatalError(L"Failed to create main application window");
             return false;
         }
-        
+
+        // Display cinematic splash while completing background initialization
+        UI::CinematicSplashScreen::Config splashCfg;
+        splashCfg.enableSound = false;
+        UI::CinematicSplashScreen splash(hInstance_, splashCfg);
+        splash.Show();
+
+        // Note splash start time to ensure minimum cinematic duration
+        auto splashStart = std::chrono::steady_clock::now();
+
+        // Simulate staged initialization with progress updates
+        auto stage = [&](int pct, const wchar_t* msg){ splash.UpdateProgress(pct, msg); };
+        stage(10, L"Initializing services");
+        // Place for provider autodetect and light tasks
+        std::this_thread::sleep_for(std::chrono::milliseconds(150));
+        stage(40, L"Preparing dashboard");
+        std::this_thread::sleep_for(std::chrono::milliseconds(150));
+        stage(70, L"Loading widgets");
+        std::this_thread::sleep_for(std::chrono::milliseconds(150));
+        stage(100, L"Starting");
+
+        // Ensure splash displays for ~6-8 seconds minimum and extend up to 12 seconds if still loading
+        constexpr long kMinMs = 6000;
+        constexpr long kPrefMaxMs = 8000;
+        constexpr long kHardMaxMs = 12000;
+        long targetMs = splashCfg.displayTimeMs;
+        if (targetMs < kMinMs) targetMs = kMinMs; else if (targetMs > kPrefMaxMs) targetMs = kPrefMaxMs;
+
+        // A flag that represents critical init phases finished (simulate now; wire real checks later)
+        bool criticalInitDone = true; // set to true after required init steps complete
+
+        while (true) {
+            auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                  std::chrono::steady_clock::now() - splashStart)
+                                  .count();
+            if (elapsedMs >= targetMs && (criticalInitDone || elapsedMs >= kHardMaxMs)) break;
+            // Pump messages so splash remains responsive during wait
+            MSG m{};
+            while (PeekMessage(&m, nullptr, 0, 0, PM_REMOVE)) {
+                TranslateMessage(&m);
+                DispatchMessage(&m);
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        splash.Hide();
+
+        // Show main window now that splash has finished
+        ShowMainWindow();
+
+        // Mark initialized
         initialized_ = true;
         LogApplicationEvent(L"Application initialization completed successfully");
         return true;
@@ -360,11 +411,8 @@ bool RAINMGRApp::CreateMainWindow() {
             return false;
         }
         
-        // Show and update window
-        ShowWindow(mainWindow_, SW_SHOW);
-        UpdateWindow(mainWindow_);
-        
-        LogApplicationEvent(L"Main window created successfully");
+        // Do not show window yet; splash should be the only thing visible
+        LogApplicationEvent(L"Main window created successfully (hidden)");
         return true;
     } catch (const std::exception& e) {
         std::string errorMsg = "Exception in CreateMainWindow: ";
@@ -395,6 +443,14 @@ void RAINMGRApp::ExecuteShutdownHandlers() {
     }
     
     shutdownHandlers_.clear();
+}
+
+void RAINMGRApp::ShowMainWindow() {
+    if (mainWindow_) {
+        ShowWindow(mainWindow_, SW_SHOW);
+        UpdateWindow(mainWindow_);
+        LogApplicationEvent(L"Main window shown");
+    }
 }
 
 void RAINMGRApp::CleanupResources() {

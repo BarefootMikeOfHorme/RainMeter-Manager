@@ -15,6 +15,7 @@
 #include <string>
 #include <chrono>
 #include <thread>
+#include <mutex>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -100,13 +101,18 @@ public:
         int height = 1080;                   // 4K height (can scale to 2160 for true 4K)
         bool enable4K = true;                // Enable 4K resolution if available
         float transparency = 0.15f;          // Background transparency (0.0 = fully transparent)
-        int displayTimeMs = 8000;            // Extended display time for cinematic effect
+        int displayTimeMs = 8000;            // Baseline display time (ms)
+        int minDisplayTimeMs = 6000;         // Minimum time to show (ms)
+        int maxDisplayTimeMs = 12000;        // Max time to show if still loading (ms)
+        bool extendIfLoading = true;         // Extend up to max if loading not finished
+        bool allowManualDismiss = false;     // Allow user to click/press key to dismiss
         bool enableSound = true;             // Enable ambient water sounds
         std::wstring soundPath;              // Custom sound file path
         WaterDropPhysics physics;            // Water physics parameters
         bool enableParticles = true;         // Enable water particle effects
         bool enableReflections = true;       // Enable water reflections
         float ambientVolume = 0.3f;          // Ambient sound volume (0.0-1.0)
+        bool enableAutoMessages = true;      // Rotate helpful or witty messages
     };
 
     /**
@@ -137,13 +143,24 @@ private:
     // Animation state
     std::chrono::steady_clock::time_point startTime_;
     std::chrono::steady_clock::time_point lastUpdateTime_;
+    std::chrono::steady_clock::time_point lastFrameTime_;
+    std::chrono::steady_clock::time_point lastFPSUpdate_;
     float fadeOpacity_;
     bool isAnimating_;
+    
+    // Auto status messages
+    std::vector<std::wstring> wittyMessages_;
+    size_t wittyIndex_ = 0;
+    std::chrono::steady_clock::time_point lastMessageSwap_;
+    bool firstHintShown_ = false;
+    std::wstring auxStatus_;
     
     // Threading
     mutable std::mutex stateMutex_;
     std::thread animationThread_;
+    std::thread lifecycleThread_;
     bool shouldStopAnimation_;
+    bool lifecycleActive_ = false;
     
     // Callbacks
     CompletionCallback completionCallback_;
@@ -227,6 +244,16 @@ public:
     bool ProcessMessages();
 
 private:
+    /**
+     * @brief Start and stop lifecycle watchdog (auto-dismiss)
+     */
+    void StartLifecycleWatchdog();
+    void StopLifecycleWatchdog();
+
+    /**
+     * @brief Initialize witty messages rotation
+     */
+    void InitializeMessages();
     /**
      * @brief Initialize resources and register window class
      */

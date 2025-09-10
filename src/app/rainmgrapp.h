@@ -77,6 +77,7 @@ public:
     // Window management
     HWND GetMainWindow() const { return mainWindow_; }
     void SetMainWindow(HWND hwnd) { mainWindow_ = hwnd; }
+    void ShowMainWindow();
     
     // Application information
     HINSTANCE GetHInstance() const { return hInstance_; }

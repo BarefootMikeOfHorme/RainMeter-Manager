@@ -2,12 +2,13 @@
 // Copyright (c) 2025 Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal. All rights reserved.
 
 #include <windows.h>
-#include <combaseapi.h>
-#include <shellscalingapi.h>
+#include <combaseapi.h>\n#include <shellscalingapi.h>
 #include <dbghelp.h>
+#include <shellapi.h>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 #include <chrono>
 
 // Core application headers
@@ -16,6 +17,8 @@
 #include "core/error_handling.h"
 #include "core/security.h"
 #include "version.h"
+#include "ui/splash_screen.h"
+#include "ui/options_window.h"
 
 // Phase 2: Application core layer
 #include "rainmgrapp.h"
@@ -36,6 +39,70 @@ static bool g_emergencyShutdown = false;
 //=============================================================================
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd);
+
+struct CLIOptions {
+    std::wstring scene;
+    std::wstring profile;
+    std::wstring logLevel;
+    bool headless = false;
+    bool webEnabled = true;
+    std::vector<std::wstring> allowedOrigins;
+    bool dashboardOnly = false;
+    bool showHelp = false;
+};
+
+static LogLevel ParseLogLevel(const std::wstring& level) {
+    std::wstring l = level; 
+    for (auto& ch : const_cast<std::wstring&>(l)) ch = towlower(ch);
+    if (l == L"trace") return LogLevel::TRACE;
+    if (l == L"debug") return LogLevel::DEBUG;
+    if (l == L"info")  return LogLevel::INFO;
+    if (l == L"warn" || l == L"warning") return LogLevel::WARNING;
+    if (l == L"error") return LogLevel::ERROR;
+    if (l == L"critical") return LogLevel::CRITICAL;
+    if (l == L"fatal") return LogLevel::FATAL;
+    return LogLevel::INFO;
+}
+
+static CLIOptions ParseCLI() {
+    CLIOptions opts;
+    int argc = 0;
+    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    if (!argv) return opts;
+    for (int i = 1; i < argc; ++i) {
+        std::wstring arg = argv[i];
+        auto eq = arg.find(L'=');
+        auto key = arg;
+        std::wstring val;
+        if (eq != std::wstring::npos) { key = arg.substr(0, eq); val = arg.substr(eq + 1); }
+        if (key == L"--scene" && !val.empty()) opts.scene = val;
+        else if (key == L"--profile" && !val.empty()) opts.profile = val;
+        else if (key == L"--log-level" && !val.empty()) opts.logLevel = val;
+        else if (key == L"--headless") opts.headless = true;
+        else if (key == L"--no-web") opts.webEnabled = false;
+        else if (key == L"--allow-origin" && !val.empty()) {
+            size_t start = 0, pos = 0; 
+            while ((pos = val.find(L',', start)) != std::wstring::npos) {
+                opts.allowedOrigins.push_back(val.substr(start, pos - start));
+                start = pos + 1;
+            }
+            if (start < val.size()) opts.allowedOrigins.push_back(val.substr(start));
+        }
+        else if (key == L"--dashboard-only") opts.dashboardOnly = true;
+        else if (key == L"--help" || key == L"-h" || key == L"/h" || key == L"/?") opts.showHelp = true;
+    }
+    LocalFree(argv);
+    return opts;
+}
+
+static void ApplyCLIOptions(const CLIOptions& opts) {
+    if (!opts.logLevel.empty()) {
+        Logger::setLogLevel(ParseLogLevel(opts.logLevel));
+    }
+    // Log CLI settings; ConfigManager plumbing can be added non-destructively later
+    LOG_INFO("CLI: headless=" + std::string(opts.headless ? "true" : "false") +
+             ", webEnabled=" + std::string(opts.webEnabled ? "true" : "false"));
+}
 LONG WINAPI UnhandledExceptionFilter(EXCEPTION_POINTERS* exceptionInfo);
 bool InitializeCOMSubsystem();
 bool SetupDPIAwareness();
@@ -44,6 +111,10 @@ void GenerateMiniDump(EXCEPTION_POINTERS* exceptionInfo);
 void ShowCriticalErrorDialog(const std::wstring& title, const std::wstring& message);
 bool ValidateSystemRequirements();
 void CleanupAndExit(int exitCode);
+
+// CLI helpers
+static void ShowCLIHelp();
+static bool ValidateCLIOptions(const CLIOptions& opts, std::wstring& error);
 
 //=============================================================================
 // Main Application Entry Point
@@ -134,8 +205,26 @@ int WINAPI wWinMain(
             return INITIALIZATION_FAILURE_CODE;
         }
         
+// Apply CLI
+        CLIOptions cli = ParseCLI();
+        
         // Log successful bootstrap start
         LOG_INFO("=== RainmeterManager Bootstrap Started ===");
+        
+        // Set log level from CLI if provided
+        ApplyCLIOptions(cli);
+        if (cli.showHelp) {
+            ShowCLIHelp();
+            CleanupAndExit(0);
+            return 0;
+        }
+        {
+            std::wstring cliError;
+            if (!ValidateCLIOptions(cli, cliError)) {
+                ShowCriticalErrorDialog(L"Invalid CLI Options", cliError + L"\nTry --help for usage.");
+                return INITIALIZATION_FAILURE_CODE;
+            }
+        }
         LOG_INFO("Version: " + std::string(VERSION_STRING));
         LOG_INFO("Build: " + std::to_string(VERSION_MAJOR) + "." + 
                  std::to_string(VERSION_MINOR) + "." + std::to_string(VERSION_PATCH));
@@ -235,12 +324,36 @@ int WINAPI wWinMain(
         
         LOG_INFO("Initializing UI framework...");
         
+        // Show cinematic splash
+        {
+            using RainmeterManager::UI::SplashManager;
+            auto& splash = SplashManager::GetInstance();
+            splash.ShowSplash(hInstance);
+            splash.UpdateProgress(10, L"Bootstrapping");
+        }
+
         // TODO: Implement UI framework initialization
         // - Register window classes
         // - Initialize SkiaSharp surface (if available)
         // - Create splash screen
         
         LOG_INFO("UI framework initialization: PLACEHOLDER");
+        {
+            // Simulate staged progress updates for user feedback
+            using RainmeterManager::UI::SplashManager;
+            auto& splash = SplashManager::GetInstance();
+            splash.UpdateProgress(40, L"Security\u2003✓");
+            splash.UpdateProgress(60, L"Core services");
+            splash.UpdateProgress(80, L"UI ready");
+        }
+
+        // Create and show Options window with Dashboard and Task Manager tabs
+        {
+            RainmeterManager::UI::OptionsWindow opts(hInstance);
+            if (opts.Create()) {
+                opts.Show(SW_SHOWNORMAL);
+            }
+        }
         
         //=====================================================================
         // Phase 8: Widget System Initialization  
@@ -266,6 +379,11 @@ int WINAPI wWinMain(
         LOG_INFO("Phase 2: Starting RAINMGRApp main loop...");
         
         // Phase 2: Run the application using RAINMGRApp singleton
+        {
+            using RainmeterManager::UI::SplashManager;
+            auto& splash = SplashManager::GetInstance();
+            splash.UpdateProgress(100, L"Starting");
+        }
         int appExitCode = app.Run();
         
         LOG_INFO("Application exited with code: " + std::to_string(appExitCode));
@@ -314,6 +432,41 @@ int WINAPI wWinMain(
         CleanupAndExit(EMERGENCY_EXIT_CODE);
         return EMERGENCY_EXIT_CODE;
     }
+}
+
+//=============================================================================
+// CLI Helpers
+//=============================================================================
+
+static void ShowCLIHelp() {
+    std::wstring help =
+        L"RainmeterManager CLI\n\n"
+        L"Options:\n"
+        L"  --scene=<name>            Select startup scene\n"
+        L"  --profile=<name>          Use configuration profile\n"
+        L"  --log-level=<level>       trace|debug|info|warn|error|critical|fatal\n"
+        L"  --headless                Start without UI\n"
+        L"  --dashboard-only          Show dashboard only (no widget suite)\n"
+        L"  --no-web                  Disable web content\n"
+        L"  --allow-origin=<host>     Allow web origin (repeatable)\n"
+        L"  --help, -h                Show this help\n\n"
+        L"Examples:\n"
+        L"  RainmeterManager.exe --log-level=info --dashboard-only\n"
+        L"  RainmeterManager.exe --scene=work --profile=quiet --no-web\n"
+        L"  RainmeterManager.exe --allow-origin=api.nasa.gov --allow-origin=tile.openstreetmap.org\n";
+    MessageBoxW(nullptr, help.c_str(), L"RainmeterManager Help", MB_OK | MB_ICONINFORMATION | MB_TASKMODAL);
+}
+
+static bool ValidateCLIOptions(const CLIOptions& opts, std::wstring& error) {
+    if (opts.headless && opts.dashboardOnly) {
+        error = L"--dashboard-only cannot be combined with --headless.";
+        return false;
+    }
+    if (!opts.webEnabled && !opts.allowedOrigins.empty()) {
+        error = L"--allow-origin can only be used when web is enabled (omit --no-web).";
+        return false;
+    }
+    return true;
 }
 
 //=============================================================================

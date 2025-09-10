@@ -3,6 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RenderProcess.Runtime;
 using RenderProcess.Communication;
+using RenderProcess.Backends;
+using RenderProcess.Content;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,7 +61,9 @@ public class Program
                 services.AddSingleton<RenderManager>();
                 services.AddSingleton<IPCMessageHandler>();
                 services.AddSingleton<PerformanceMonitor>();
+                services.AddSingleton<DashboardService>();
                 services.AddSingleton<MonitorManager>();
+                services.AddSingleton<ProcessService>();
                 
                 // Register backend services
                 services.AddTransient<SkiaSharpRenderer>();

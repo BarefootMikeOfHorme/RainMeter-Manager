@@ -512,7 +512,7 @@ public class IPCMessageHandler : IDisposable
             byte[] commandData = new byte[dataSize];
             bytesRead = await _namedPipe.ReadAsync(commandData, 0, (int)dataSize);
 
-            if (bytesRead != dataSize)
+            if (bytesRead != (int)dataSize)
             {
                 _logger.LogError($"Incomplete command read: expected {dataSize}, got {bytesRead}");
                 return false;
@@ -647,7 +647,7 @@ public class IPCMessageHandler : IDisposable
                 WidgetId = command.WidgetId,
                 Status = RenderResultStatus.Failure,
                 ErrorMessage = $"Command handling failed: {ex.Message}",
-                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                Timestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             };
 
             await SendResultAsync(errorResult);

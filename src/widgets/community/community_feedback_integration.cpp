@@ -1,3 +1,7 @@
+#include "../../core/feature_flags.h"
+
+#if RM_ENABLE_COMMUNITY_WIDGETS
+
 #include "framework/widget_framework.h"
 #include "community_feedback.h"
 #include "ui_framework.h"
@@ -250,6 +254,12 @@ bool validateCommunitySource(const std::string& url) {
     
     return true;
 }
+
+#else // RM_ENABLE_COMMUNITY_WIDGETS
+
+// Community features disabled; no compilation unit content.
+
+#endif // RM_ENABLE_COMMUNITY_WIDGETS
 
 std::string generateCommunityFeedConfig(const SourceRecommendation& recommendation) {
     std::string config = "{\n";

@@ -41,7 +41,11 @@ public enum RenderCommandType : uint
     Destroy = 3,
     SwitchBackend = 4,
     UpdateContent = 5,
-    SetProperty = 6
+    SetProperty = 6,
+
+    // Diagnostics / Data queries
+    GetSystemSnapshot = 100,
+    GetProcessSnapshot = 101
 }
 
 /// <summary>

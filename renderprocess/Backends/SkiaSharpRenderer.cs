@@ -9,6 +9,7 @@ using System.Drawing;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -39,6 +40,7 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
     // Rendering properties
     private RenderProperties _properties;
     private ContentParameters _contentParameters;
+    private bool _opacityLayerPushed;
     
     // Performance monitoring
     private PerformanceMetrics _metrics;
@@ -514,7 +516,10 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
         if (_properties.Opacity < 1.0f)
         {
             var alpha = (byte)(_properties.Opacity * 255);
-            _canvas.SaveLayerAlpha(alpha);
+            var paint = new SKPaint { Color = SKColors.White.WithAlpha(alpha) };
+            _canvas.SaveLayer(paint);
+            paint.Dispose();
+            _opacityLayerPushed = true;
         }
     }
 
@@ -566,6 +571,12 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
             ApplyShadowEffect();
         }
 
+        // Restore opacity layer if pushed
+        if (_opacityLayerPushed)
+        {
+            _canvas.Restore();
+            _opacityLayerPushed = false;
+        }
         _canvas.Restore();
     }
 
@@ -894,8 +905,8 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
             _frameTimes.RemoveAt(0);
         }
         
-        _metrics.TotalFrames = _frameCount;
-        _metrics.RenderTimeMs = (long)renderTimeMs;
+        _metrics.TotalFrames = (ulong)_frameCount;
+        _metrics.RenderTimeMs = (ulong)Math.Max(0, (long)Math.Round(renderTimeMs));
         
         if (_frameTimes.Count > 0)
         {
@@ -906,13 +917,13 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
         
         // Update memory usage
         var process = Process.GetCurrentProcess();
-        _metrics.MemoryUsageMB = process.WorkingSet64 / 1024 / 1024;
+        _metrics.MemoryUsageMB = (ulong)(process.WorkingSet64 / 1024 / 1024);
     }
 
     private void UpdateCurrentMetrics()
     {
         var process = Process.GetCurrentProcess();
-        _metrics.MemoryUsageMB = process.WorkingSet64 / 1024 / 1024;
+        _metrics.MemoryUsageMB = (ulong)(process.WorkingSet64 / 1024 / 1024);
         _metrics.CpuUsagePercent = (float)process.TotalProcessorTime.TotalMilliseconds;
     }
 
@@ -962,6 +973,11 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
 public static class ColorExtensions
 {
     public static SKColor ToSkiaColor(this System.Drawing.Color color)
+    {
+        return new SKColor(color.R, color.G, color.B, color.A);
+    }
+
+    public static SKColor ToSkiaColor(this RenderProcess.Interfaces.RenderColor color)
     {
         return new SKColor(color.R, color.G, color.B, color.A);
     }

@@ -25,6 +25,7 @@ public class RenderManager : IDisposable
     private readonly IServiceProvider _serviceProvider;
     private readonly IPCMessageHandler _ipcHandler;
     private readonly PerformanceMonitor _performanceMonitor;
+    private readonly ProcessService _processService;
     
     // Rendering backend management
 private readonly ConcurrentDictionary<uint, IRenderBackend> _activeBackends;
@@ -45,7 +46,7 @@ private readonly ConcurrentDictionary<uint, IRenderBackend> _activeBackends;
     // Performance and statistics
     private readonly RenderStatistics _statistics;
     private DateTime _startTime;
-    private readonly Timer _metricsTimer;
+    private readonly System.Threading.Timer _metricsTimer;
     
     // Configuration and capabilities
     private readonly RenderConfiguration _configuration;
@@ -59,12 +60,14 @@ private readonly ConcurrentDictionary<uint, IRenderBackend> _activeBackends;
         ILogger<RenderManager> logger,
         IServiceProvider serviceProvider,
         IPCMessageHandler ipcHandler,
-        PerformanceMonitor performanceMonitor)
+        PerformanceMonitor performanceMonitor,
+        ProcessService processService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _ipcHandler = ipcHandler ?? throw new ArgumentNullException(nameof(ipcHandler));
         _performanceMonitor = performanceMonitor ?? throw new ArgumentNullException(nameof(performanceMonitor));
+        _processService = processService ?? throw new ArgumentNullException(nameof(processService));
         
 _activeBackends = new ConcurrentDictionary<uint, IRenderBackend>();
         _backendFactories = new Dictionary<RenderBackendType, Func<IRenderBackend>>();
@@ -76,9 +79,12 @@ _activeBackends = new ConcurrentDictionary<uint, IRenderBackend>();
         RegisterBackendFactories();
         
         // Initialize performance metrics timer
-        _metricsTimer = new Timer(UpdateMetrics, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        _metricsTimer = new System.Threading.Timer(UpdateMetrics, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
         
         _logger.LogInformation("RenderManager initialized with enterprise capabilities");
+
+        // Subscribe to IPC commands
+        _ipcHandler.CommandReceived += async (s, e) => await OnIpcCommandReceived(e.Command);
     }
 
     #region Public Interface
@@ -113,7 +119,7 @@ _activeBackends = new ConcurrentDictionary<uint, IRenderBackend>();
             _isRunning = true;
             _statistics.StartTime = _startTime;
             
-            _logger.LogInformation($"RenderManager started successfully with {_systemCapabilities.SupportedBackends?.Count ?? 0} available backends");
+            _logger.LogInformation($"RenderManager started successfully with {_systemCapabilities.SupportedBackends?.Length ?? 0} available backends");
             
             return true;
         }
@@ -353,17 +359,17 @@ public async Task<bool> LoadContentAsync(
         {
             systemMetrics.CurrentFps = backendMetrics.Average(m => m.CurrentFps);
             systemMetrics.AverageFps = backendMetrics.Average(m => m.AverageFps);
-            systemMetrics.TotalFrames = backendMetrics.Sum(m => m.TotalFrames);
-            systemMetrics.DroppedFrames = backendMetrics.Sum(m => m.DroppedFrames);
-            systemMetrics.MemoryUsageMB = backendMetrics.Sum(m => m.MemoryUsageMB);
-            systemMetrics.VramUsageMB = backendMetrics.Sum(m => m.VramUsageMB);
+            systemMetrics.TotalFrames = (ulong)backendMetrics.Sum(m => (long)m.TotalFrames);
+            systemMetrics.DroppedFrames = (ulong)backendMetrics.Sum(m => (long)m.DroppedFrames);
+            systemMetrics.MemoryUsageMB = (ulong)backendMetrics.Sum(m => (long)m.MemoryUsageMB);
+            systemMetrics.VramUsageMB = (ulong)backendMetrics.Sum(m => (long)m.VramUsageMB);
             systemMetrics.CpuUsagePercent = backendMetrics.Average(m => m.CpuUsagePercent);
             systemMetrics.GpuUsagePercent = backendMetrics.Average(m => m.GpuUsagePercent);
         }
         
         // Add system-level metrics
         var process = Process.GetCurrentProcess();
-        systemMetrics.MemoryUsageMB = Math.Max(systemMetrics.MemoryUsageMB, process.WorkingSet64 / 1024 / 1024);
+        systemMetrics.MemoryUsageMB = (ulong)Math.Max((long)systemMetrics.MemoryUsageMB, (long)(process.WorkingSet64 / 1024 / 1024));
         
         return systemMetrics;
     }
@@ -407,6 +413,62 @@ public async Task<bool> LoadContentAsync(
     }
 
     #endregion
+
+    private async Task OnIpcCommandReceived(RenderProcess.Interfaces.RenderCommand command)
+    {
+        try
+        {
+            switch (command.CommandType)
+            {
+                case RenderProcess.Interfaces.RenderCommandType.GetSystemSnapshot:
+                {
+                    var metrics = GetSystemPerformanceMetrics();
+                    var json = System.Text.Json.JsonSerializer.Serialize(metrics, new System.Text.Json.JsonSerializerOptions { WriteIndented = false });
+                    var result = new RenderProcess.Interfaces.RenderResult
+                    {
+                        CommandId = command.CommandId,
+                        WidgetId = command.WidgetId,
+                        Status = RenderProcess.Interfaces.RenderResultStatus.Success,
+                        ErrorMessage = json, // temporary payload channel
+                        Timestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    };
+                    await _ipcHandler.SendResultAsync(result);
+                    break;
+                }
+                case RenderProcess.Interfaces.RenderCommandType.GetProcessSnapshot:
+                {
+                    var list = _processService.GetSnapshot();
+                    var json = System.Text.Json.JsonSerializer.Serialize(list, new System.Text.Json.JsonSerializerOptions { WriteIndented = false });
+                    var result = new RenderProcess.Interfaces.RenderResult
+                    {
+                        CommandId = command.CommandId,
+                        WidgetId = command.WidgetId,
+                        Status = RenderProcess.Interfaces.RenderResultStatus.Success,
+                        ErrorMessage = json, // temporary payload channel
+                        Timestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    };
+                    await _ipcHandler.SendResultAsync(result);
+                    break;
+                }
+                default:
+                    // ignore other commands here; handled elsewhere
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OnIpcCommandReceived failed");
+            var result = new RenderProcess.Interfaces.RenderResult
+            {
+                CommandId = command.CommandId,
+                WidgetId = command.WidgetId,
+                Status = RenderProcess.Interfaces.RenderResultStatus.Failure,
+                ErrorMessage = ex.Message,
+                Timestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            };
+            await _ipcHandler.SendResultAsync(result);
+        }
+    }
 
     #region Private Implementation
 
@@ -458,7 +520,7 @@ public async Task<bool> LoadContentAsync(
         try
         {
             var tasks = new[] { _renderLoopTask, _performanceMonitoringTask, _maintenanceTask, _ipcListenerTask }
-                .Where(t => t != null)
+                .OfType<Task>()
                 .ToArray();
             
             await Task.WhenAll(tasks);
@@ -532,7 +594,7 @@ public async Task<bool> LoadContentAsync(
                     _logger.LogWarning($"Low FPS detected: {systemMetrics.CurrentFps:F1}");
                 }
                 
-                if (systemMetrics.MemoryUsageMB > _configuration.MemoryThresholdMB)
+                if ((long)systemMetrics.MemoryUsageMB > (long)_configuration.MemoryThresholdMB)
                 {
                     _logger.LogWarning($"High memory usage detected: {systemMetrics.MemoryUsageMB} MB");
                 }
@@ -565,7 +627,7 @@ public async Task<bool> LoadContentAsync(
                 
                 // Garbage collection if memory usage is high
                 var systemMetrics = GetSystemPerformanceMetrics();
-                if (systemMetrics.MemoryUsageMB > _configuration.MemoryThresholdMB)
+                if ((long)systemMetrics.MemoryUsageMB > (long)_configuration.MemoryThresholdMB)
                 {
                     _logger.LogDebug("Triggering garbage collection due to high memory usage");
                     GC.Collect();
