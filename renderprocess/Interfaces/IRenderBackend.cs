@@ -1,9 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace RenderProcess.Interfaces;
 
-public enum RenderBackendType
+// Legacy duplicates retained for reference (renamed with Legacy suffix to avoid collisions)
+public enum RenderBackendTypeLegacy
 {
     SkiaSharp = 0,
     Direct3D = 1,
@@ -11,15 +14,15 @@ public enum RenderBackendType
     Auto = 99
 }
 
-public enum ContentSourceType
+public enum ContentSourceTypeLegacy
 {
-    Static = 0,      // Static content (text, images)
-    Web = 1,         // Web URLs, HTML content  
-    API = 2,         // REST/GraphQL APIs
-    Media = 3,       // Video/audio streams
-    File = 4,        // Local files
-    Office = 5,      // Excel, Word, PowerPoint
-    Custom = 99      // Custom content source
+    Static = 0,
+    Web = 1,
+    API = 2,
+    Media = 3,
+    File = 4,
+    Office = 5,
+    Custom = 99
 }
 
 public interface IRenderBackend : IDisposable
@@ -53,9 +56,9 @@ public interface IRenderBackend : IDisposable
     event EventHandler<FrameRenderedEventArgs>? FrameRendered;
 }
 
-public struct ContentParameters
+public struct ContentParametersLegacy
 {
-    public ContentSourceType SourceType { get; set; }
+    public ContentSourceTypeLegacy SourceType { get; set; }
     public string SourceUrl { get; set; }
     public string TemplatePath { get; set; }
     public string AuthToken { get; set; }
@@ -64,9 +67,9 @@ public struct ContentParameters
     public Dictionary<string, string> CustomHeaders { get; set; }
     public Dictionary<string, string> Parameters { get; set; }
     
-    public ContentParameters()
+    public ContentParametersLegacy()
     {
-        SourceType = ContentSourceType.Static;
+        SourceType = ContentSourceTypeLegacy.Static;
         SourceUrl = string.Empty;
         TemplatePath = string.Empty;
         AuthToken = string.Empty;
@@ -77,7 +80,7 @@ public struct ContentParameters
     }
 }
 
-public struct RenderProperties
+public struct RenderPropertiesLegacy
 {
     public float Opacity { get; set; }
     public bool Visible { get; set; }
@@ -97,7 +100,7 @@ public struct RenderProperties
     public int ShadowOffsetX { get; set; }
     public int ShadowOffsetY { get; set; }
     
-    public RenderProperties()
+    public RenderPropertiesLegacy()
     {
         Opacity = 1.0f;
         Visible = true;
@@ -117,7 +120,7 @@ public struct RenderProperties
     }
 }
 
-public struct PerformanceMetrics
+public struct PerformanceMetricsLegacy
 {
     public float CurrentFps { get; set; }
     public float AverageFps { get; set; }
@@ -130,7 +133,7 @@ public struct PerformanceMetrics
     public long RenderTimeMs { get; set; }
     public long ContentLoadTimeMs { get; set; }
     
-    public PerformanceMetrics()
+    public PerformanceMetricsLegacy()
     {
         CurrentFps = 0.0f;
         AverageFps = 0.0f;
@@ -145,13 +148,13 @@ public struct PerformanceMetrics
     }
 }
 
-public class RenderErrorEventArgs : EventArgs
+public class RenderErrorEventArgsLegacy : EventArgs
 {
     public string ErrorMessage { get; }
     public Exception? Exception { get; }
-    public RenderBackendType BackendType { get; }
+    public RenderBackendTypeLegacy BackendType { get; }
     
-    public RenderErrorEventArgs(string errorMessage, Exception? exception, RenderBackendType backendType)
+    public RenderErrorEventArgsLegacy(string errorMessage, Exception? exception, RenderBackendTypeLegacy backendType)
     {
         ErrorMessage = errorMessage;
         Exception = exception;
@@ -159,13 +162,13 @@ public class RenderErrorEventArgs : EventArgs
     }
 }
 
-public class FrameRenderedEventArgs : EventArgs
+public class FrameRenderedEventArgsLegacy : EventArgs
 {
     public long FrameNumber { get; }
     public double RenderTimeMs { get; }
     public DateTime Timestamp { get; }
     
-    public FrameRenderedEventArgs(long frameNumber, double renderTimeMs)
+    public FrameRenderedEventArgsLegacy(long frameNumber, double renderTimeMs)
     {
         FrameNumber = frameNumber;
         RenderTimeMs = renderTimeMs;

@@ -27,7 +27,7 @@ public class RenderManager : IDisposable
     private readonly PerformanceMonitor _performanceMonitor;
     
     // Rendering backend management
-    private readonly ConcurrentDictionary<uint32_t, IRenderBackend> _activeBackends;
+private readonly ConcurrentDictionary<uint, IRenderBackend> _activeBackends;
     private readonly Dictionary<RenderBackendType, Func<IRenderBackend>> _backendFactories;
     private readonly object _backendLock = new();
     
@@ -66,7 +66,7 @@ public class RenderManager : IDisposable
         _ipcHandler = ipcHandler ?? throw new ArgumentNullException(nameof(ipcHandler));
         _performanceMonitor = performanceMonitor ?? throw new ArgumentNullException(nameof(performanceMonitor));
         
-        _activeBackends = new ConcurrentDictionary<uint32_t, IRenderBackend>();
+_activeBackends = new ConcurrentDictionary<uint, IRenderBackend>();
         _backendFactories = new Dictionary<RenderBackendType, Func<IRenderBackend>>();
         _statistics = new RenderStatistics();
         _configuration = LoadConfiguration();
@@ -166,7 +166,7 @@ public class RenderManager : IDisposable
     /// <summary>
     /// Create a new rendering backend for a widget
     /// </summary>
-    public async Task<uint32_t> CreateRenderBackendAsync(
+public async Task<uint> CreateRenderBackendAsync(
         RenderBackendType backendType,
         IntPtr windowHandle,
         int width,
@@ -232,7 +232,7 @@ public class RenderManager : IDisposable
     /// <summary>
     /// Destroy a rendering backend
     /// </summary>
-    public async Task<bool> DestroyRenderBackendAsync(uint32_t widgetId)
+public async Task<bool> DestroyRenderBackendAsync(uint widgetId)
     {
         try
         {
@@ -268,7 +268,7 @@ public class RenderManager : IDisposable
     /// <summary>
     /// Render frame for specific widget
     /// </summary>
-    public async Task<bool> RenderFrameAsync(uint32_t widgetId)
+public async Task<bool> RenderFrameAsync(uint widgetId)
     {
         try
         {
@@ -301,8 +301,8 @@ public class RenderManager : IDisposable
     /// <summary>
     /// Load content for specific widget
     /// </summary>
-    public async Task<bool> LoadContentAsync(
-        uint32_t widgetId,
+public async Task<bool> LoadContentAsync(
+        uint widgetId,
         string contentSource,
         ContentParameters parameters)
     {
@@ -656,14 +656,14 @@ public class RenderManager : IDisposable
         }
     }
 
-    private uint32_t GenerateWidgetId()
+private uint GenerateWidgetId()
     {
-        return (uint32_t)(Environment.TickCount & 0x7FFFFFFF);
+return (uint)(Environment.TickCount & 0x7FFFFFFF);
     }
 
     private void CleanupDisposedBackends()
     {
-        var toRemove = new List<uint32_t>();
+var toRemove = new List<uint>();
         
         foreach (var kvp in _activeBackends)
         {

@@ -1,0 +1,25 @@
+Build Error Report
+Timestamp (UTC): 20250910_001900Z
+Configuration: Release | Platform: x64
+
+== Summary ==
+dotnet build errors:   7, warnings: 17
+MSBuild (C++) errors:  3, warnings: 1
+
+== dotnet build (renderprocess/RenderProcess.csproj) errors ==
+C:\Users\Administrator\RainmeterManager\renderprocess\Runtime\RenderManager.cs(27,22): error CS0246: The type or namespace name 'PerformanceMonitor' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Administrator\RainmeterManager\renderprocess\RenderProcess.csproj]
+C:\Users\Administrator\RainmeterManager\renderprocess\Backends\WebViewRenderer.cs(660,52): error CS0246: The type or namespace name 'CoreWebView2ScriptExceptionEventArgs' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Administrator\RainmeterManager\renderprocess\RenderProcess.csproj]
+C:\Users\Administrator\RainmeterManager\renderprocess\Runtime\RenderManager.cs(62,9): error CS0246: The type or namespace name 'PerformanceMonitor' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Administrator\RainmeterManager\renderprocess\RenderProcess.csproj]
+C:\Users\Administrator\RainmeterManager\renderprocess\Runtime\RenderManager.cs(27,22): error CS0246: The type or namespace name 'PerformanceMonitor' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Administrator\RainmeterManager\renderprocess\RenderProcess.csproj]
+C:\Users\Administrator\RainmeterManager\renderprocess\Backends\WebViewRenderer.cs(660,52): error CS0246: The type or namespace name 'CoreWebView2ScriptExceptionEventArgs' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Administrator\RainmeterManager\renderprocess\RenderProcess.csproj]
+C:\Users\Administrator\RainmeterManager\renderprocess\Runtime\RenderManager.cs(62,9): error CS0246: The type or namespace name 'PerformanceMonitor' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Administrator\RainmeterManager\renderprocess\RenderProcess.csproj]
+    3 Error(s)
+
+== MSBuild (RainmeterManager.sln) errors ==
+     2>C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj(28,3): error MSB4019: The imported project "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.Cpp.Default.props" was not found. Confirm that the expression in the Import declaration "$(VCTargetsPath)\Microsoft.Cpp.Default.props", which evaluated to "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\\Microsoft.Cpp.Default.props", is correct, and that the file exists on disk.
+         C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj(28,3): error MSB4019: The imported project "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.Cpp.Default.props" was not found. Confirm that the expression in the Import declaration "$(VCTargetsPath)\Microsoft.Cpp.Default.props", which evaluated to "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\\Microsoft.Cpp.Default.props", is correct, and that the file exists on disk.
+    1 Error(s)
+
+== Notes ==
+- C++: If missing Microsoft.Cpp.Default.props, install Desktop development with C++ (VS 2022) or C++ Build Tools
+- C#: Fix duplicate type definitions and missing references (e.g., WebView2, System.Drawing).
