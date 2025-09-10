@@ -1,5 +1,5 @@
-This repository’s Pre‑Release versions are governed by the RainmeterManager Beta Non‑Commercial License (RB‑NC‑1.0).
+This repository’s Pre‑Release versions are governed by the RainmeterManager Beta Non‑Commercial License (RB‑NC‑1.1).
 
-See LICENSE-BETA.txt for the full text. For third‑party components, see NOTICE.
+See LICENSE for the full text. For third‑party components, see NOTICE.
 
 Note: A future commercial store release (v1.0.0 and later) will be distributed under a separate EULA.
