@@ -1,5 +1,10 @@
 # Rainmeter Manager
 
+> Latest build: v1.0.0.0-build (PR #1) — 2025-09-10
+> - Tag: https://github.com/BarefootMikeOfHorme/RainMeter-Manager/tree/v1.0.0.0-build
+> - PR: https://github.com/BarefootMikeOfHorme/RainMeter-Manager/pull/1
+> - Changelog: changes/2025-09-10_Build-and-IPC-Prep/CHANGELOG.md
+
 An enterprise-grade management application for Rainmeter skins and widgets with advanced security features.
 
 ## Architecture
