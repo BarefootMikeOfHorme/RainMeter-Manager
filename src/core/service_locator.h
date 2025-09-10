@@ -6,7 +6,8 @@
 #include <typeindex>
 #include <functional>
 #include <mutex>
-#include "logger.h"
+#include <unordered_set>
+#include "logger_adapter.h"
 
 namespace RainmeterManager {
 namespace Core {

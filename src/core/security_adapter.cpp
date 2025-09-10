@@ -38,11 +38,11 @@ namespace RainmeterManager { namespace Core { namespace Security {
 
 bool Initialize() {
     // Initialize underlying BCrypt providers etc.
-    return ::Security::initializeCrypto();
+    return ::Security::Initialize();
 }
 
 void Cleanup() {
-    ::Security::cleanupCrypto();
+    ::Security::Cleanup();
 }
 
 std::string EncryptString(const std::string& plaintext) {

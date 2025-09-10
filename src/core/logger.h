@@ -14,6 +14,20 @@
 #include <windows.h>
 #include <dbghelp.h>  // For stack traces
 
+// Avoid name collisions with Windows macros
+#ifdef ERROR
+#undef ERROR
+#endif
+#ifdef WARNING
+#undef WARNING
+#endif
+#ifdef CRITICAL
+#undef CRITICAL
+#endif
+#ifdef FATAL
+#undef FATAL
+#endif
+
 // Enterprise-level log levels
 enum class LogLevel {
     TRACE,
@@ -70,7 +84,7 @@ public:
     static void enableConsoleOutput(bool enable = true);
     
     // Core logging methods
-    static void log(LogLevel level, const std::string& message, const char* file = __FILE__, int line = __LINE__, const char* function = __FUNCTION__);
+    static void log(LogLevel level, const std::string& message, const char* file = "", int line = 0, const char* function = nullptr);
     static void trace(const std::string& message);
     static void debug(const std::string& message);
     static void info(const std::string& message);

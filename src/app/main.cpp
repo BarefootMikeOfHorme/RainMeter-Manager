@@ -148,8 +148,8 @@ int WINAPI wWinMain(
         
         LOG_INFO("Initializing security framework...");
         
-        // Initialize crypto providers first
-        if (!Security::initializeCrypto()) {
+// Initialize crypto providers first
+        if (!Security::Initialize()) {
             LOG_ERROR("Failed to initialize cryptographic providers");
             ShowCriticalErrorDialog(
                 L"Security Initialization Failed",
@@ -278,11 +278,14 @@ int WINAPI wWinMain(
         
         LOG_INFO("Beginning graceful shutdown...");
         
-        // TODO: Implement graceful shutdown sequence
+// TODO: Implement graceful shutdown sequence
         // - Save configuration
         // - Shutdown services in reverse order
         // - Release resources
         
+        // Cleanup security providers
+        Security::Cleanup();
+
         LOG_INFO("Graceful shutdown complete");
         CleanupAndExit(0);
         return 0;

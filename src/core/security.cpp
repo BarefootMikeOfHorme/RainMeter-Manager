@@ -8,6 +8,8 @@
 #include <sstream>
 #include <algorithm>
 #include <regex>
+#include <vector>
+#include <iomanip>
 #include <wintrust.h>
 #include <softpub.h>
 #include <wincrypt.h>
@@ -29,6 +31,14 @@ static std::mutex g_cryptoMutex;
 //=============================================================================
 // Crypto Provider Management
 //=============================================================================
+
+bool Security::Initialize() {
+    return initializeCrypto();
+}
+
+void Security::Cleanup() {
+    cleanupCrypto();
+}
 
 bool Security::initializeCrypto() {
     std::lock_guard<std::mutex> lock(g_cryptoMutex);

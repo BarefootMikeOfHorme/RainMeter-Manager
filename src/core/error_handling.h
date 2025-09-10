@@ -4,6 +4,9 @@
 #include "logger.h"
 #include <functional>
 #include <string>
+#include <map>
+#include <mutex>
+#include <chrono>
 
 // Enterprise-level error handling macros
 #define TRY_CATCH_LOG(operation, context) \

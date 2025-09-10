@@ -21,6 +21,10 @@ struct SecurityResult {
 
 class Security {
 public:
+    // High-level lifecycle wrappers (public)
+    static bool Initialize();
+    static void Cleanup();
+
     // SHA-256 hash calculation
     static std::string calculateSHA256(const std::string& filePath);
     static std::string calculateSHA256FromBuffer(const char* data, size_t length);

@@ -6,7 +6,7 @@
 #include <functional>
 #include <mutex>
 #include <vector>
-#include "../core/logger.h"
+#include "../core/logger_adapter.h"
 
 namespace RainmeterManager {
 namespace Config {

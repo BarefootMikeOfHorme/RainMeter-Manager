@@ -1,0 +1,41 @@
+MSBuild version 17.14.18+a338add32 for .NET Framework
+Build started 9/9/2025 7:25:21 PM.
+
+     1>Project "C:\Users\Administrator\RainmeterManager\RainmeterManager.sln" on node 1 (Build target(s)).
+     1>ValidateSolutionConfiguration:
+         Building solution configuration "Release|x64".
+     1>Project "C:\Users\Administrator\RainmeterManager\RainmeterManager.sln" (1) is building "C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj" (2) on node 1 (default targets).
+     2>PrepareForBuild:
+         Creating directory "C:\Users\Administrator\RainmeterManager\build\obj\x64\Release\".
+     2>C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(519,5): warning MSB8003: The VCToolsInstallDir property is not defined. Some build tools may not be found. [C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj]
+         Creating directory "C:\Users\Administrator\RainmeterManager\build\bin\x64\Release\".
+         Creating directory "C:\Users\Administrator\RainmeterManager\build\obj\x64\Release\RainmeterManager.tlog\".
+       InitializeBuildStatus:
+         Creating "C:\Users\Administrator\RainmeterManager\build\obj\x64\Release\RainmeterManager.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+         Touching "C:\Users\Administrator\RainmeterManager\build\obj\x64\Release\RainmeterManager.tlog\unsuccessfulbuild".
+       VcpkgTripletSelection:
+         Using triplet "x64-windows" from "C:\Users\Administrator\vcpkg\installed\x64-windows\"
+         Using normalized configuration "Release"
+       ClCompile:
+         CL.exe /c /IC:\Users\Administrator\RainmeterManager\src /IC:\Users\Administrator\RainmeterManager\src\app /IC:\Users\Administrator\RainmeterManager\src\core /IC:\Users\Administrator\RainmeterManager\src\ui /IC:\Users\Administrator\RainmeterManager\src\widgets /I"C:\Users\Administrator\vcpkg\installed\x64-windows\include" /Zi /nologo /W4 /WX- /diagnostics:column /sdl /MP /O2 /Oi /GL /D NDEBUG /D WIN32 /D _WINDOWS /D UNICODE /D _UNICODE /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++17 /permissive- /Fo"C:\Users\Administrator\RainmeterManager\build\obj\x64\Release\\" /Fd"C:\Users\Administrator\RainmeterManager\build\obj\x64\Release\vc143.pdb" /Gd /TP /FC /errorReport:queue src\app\main.cpp src\core\logger.cpp src\core\security.cpp src\widgets\community\community_feedback_integration.cpp src\core\logger_adapter.cpp src\core\security_adapter.cpp src\app\rainmgrapp.cpp src\config\config_manager.cpp src\core\service_locator.cpp
+     2>TRACKER : error TRK0005: Failed to locate: "CL.exe". The system cannot find the file specified. [C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj]
+     2>Done Building Project "C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj" (default targets) -- FAILED.
+     1>Done Building Project "C:\Users\Administrator\RainmeterManager\RainmeterManager.sln" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+       "C:\Users\Administrator\RainmeterManager\RainmeterManager.sln" (Build target) (1) ->
+       "C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj" (default target) (2) ->
+       (PrepareForBuild target) -> 
+         C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(519,5): warning MSB8003: The VCToolsInstallDir property is not defined. Some build tools may not be found. [C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj]
+
+
+       "C:\Users\Administrator\RainmeterManager\RainmeterManager.sln" (Build target) (1) ->
+       "C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj" (default target) (2) ->
+       (ClCompile target) -> 
+         TRACKER : error TRK0005: Failed to locate: "CL.exe". The system cannot find the file specified. [C:\Users\Administrator\RainmeterManager\RainmeterManager.vcxproj]
+
+    1 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.28
