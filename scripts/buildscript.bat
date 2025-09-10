@@ -288,11 +288,11 @@ echo Creating license file for installer...
 echo [%date% %time%] [INFO] Creating license file for installer... >> "%LOG_PATH%"
 
 echo Rainmeter Manager License > "%BIN_DIR%\LICENSE.txt"
-echo. >> "%BIN_DIR%\LICENSE.txt"
-echo Copyright (c) 2025 BarefootMikeOfHorme >> "%BIN_DIR%\LICENSE.txt"
-echo. >> "%BIN_DIR%\LICENSE.txt"
-echo Permission is hereby granted, free of charge, to any person obtaining a copy >> "%BIN_DIR%\LICENSE.txt"
-echo of this software and associated documentation files... >> "%BIN_DIR%\LICENSE.txt"
+ echo. >> "%BIN_DIR%\LICENSE.txt"
+ echo Copyright (c) 2025 Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal >> "%BIN_DIR%\LICENSE.txt"
+ echo. >> "%BIN_DIR%\LICENSE.txt"
+ echo Permission is hereby granted, free of charge, to any person obtaining a copy >> "%BIN_DIR%\LICENSE.txt"
+ echo of this software and associated documentation files... >> "%BIN_DIR%\LICENSE.txt"
 
 REM ========== CREATE INSTALLER ==========
 if "%SKIP_INSTALLER%"=="1" (

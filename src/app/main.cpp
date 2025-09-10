@@ -1,5 +1,5 @@
 // main.cpp - Enterprise WinMain Entry Point for RainmeterManager
-// Copyright (c) 2025 BarefootMikeOfHorme. All rights reserved.
+// Copyright (c) 2025 Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal. All rights reserved.
 
 #include <windows.h>
 #include <combaseapi.h>

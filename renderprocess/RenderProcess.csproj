@@ -17,10 +17,10 @@
     <!-- Application Properties -->
     <AssemblyTitle>RainmeterManager Render Process</AssemblyTitle>
     <AssemblyDescription>High-performance rendering process for RainmeterManager desktop widgets</AssemblyDescription>
-    <AssemblyCompany>BarefootMikeOfHorme</AssemblyCompany>
+    <AssemblyCompany>Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal</AssemblyCompany>
     <AssemblyProduct>RainmeterManager</AssemblyProduct>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
+    <AssemblyVersion>*******</AssemblyVersion>
+    <AssemblyFileVersion>*******</AssemblyFileVersion>
     
     <!-- Performance Optimizations -->
     <Optimize>true</Optimize>

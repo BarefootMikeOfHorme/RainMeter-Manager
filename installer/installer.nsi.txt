@@ -13,7 +13,7 @@
 ; Define application information
 !define PRODUCT_NAME "Rainmeter Manager"
 !define PRODUCT_VERSION "1.0.0"
-!define PRODUCT_PUBLISHER "BarefootMikeOfHorme"
+!define PRODUCT_PUBLISHER "Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal"
 !define PRODUCT_WEB_SITE "https://DeviantArt.com/BarefootMikeOfHorme"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\rainmetermanager.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rainmeter Manager"

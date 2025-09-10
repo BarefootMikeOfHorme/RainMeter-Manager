@@ -14,14 +14,14 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName", "BarefootMikeOfHorme"
+            VALUE "CompanyName", "Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal"
             VALUE "FileDescription", "Rainmeter skin and widget management application"
-            VALUE "FileVersion", "1.0.0.0"
+            VALUE "FileVersion", "*******"
             VALUE "InternalName", "RainmeterManager"
-            VALUE "LegalCopyright", "Copyright (c) 2025 BarefootMikeOfHorme"
+            VALUE "LegalCopyright", "Copyright (c) 2025 Michael D Shortland"
             VALUE "OriginalFilename", "RainmeterManager.exe"
             VALUE "ProductName", "Rainmeter Manager"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", "*******"
         END
     END
     BLOCK "VarFileInfo"

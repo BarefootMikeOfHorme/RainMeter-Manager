@@ -1,5 +1,5 @@
 // Security implementation file - Enterprise-grade security framework
-// Copyright (c) 2025 BarefootMikeOfHorme. All rights reserved.
+// Copyright (c) 2025 Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal. All rights reserved.
 
 #include "security.h"
 #include "logger.h"
