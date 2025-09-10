@@ -1,0 +1,10 @@
+CMake Build Report
+Timestamp (UTC): 20250910_002332Z
+CMake: CMAKE_NOT_FOUND
+Build Dir: out/cmake/vs2022-x64
+
+== Configure Output ==
+CMake not found in PATH or Visual Studio Build Tools CMake directory.
+
+== Build Output ==
+(no build attempted)
