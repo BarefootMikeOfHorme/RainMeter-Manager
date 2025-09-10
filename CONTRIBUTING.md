@@ -1,11 +1,11 @@
 # Contributing
 
-By submitting a pull request, you certify the Developer Certificate of Origin (DCO) and grant the maintainers the rights in Section 5 of LICENSE-BETA.txt to re‑license your contribution for future commercial releases.
+By submitting a pull request, you certify the Developer Certificate of Origin (DCO) and grant the maintainers the rights in Section 5 of LICENSE to re‑license your contribution for future commercial releases.
 
 DCO (Short Form)
 - The contribution is your original work or you have the right to submit it;
 - You license the contribution under the repository’s current license(s);
-- You grant the maintainers the rights described in LICENSE-BETA.txt Section 5.
+- You grant the maintainers the rights described in LICENSE Section 5.
 
 How to Contribute
 - Fork the repo and create a feature branch.

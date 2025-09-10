@@ -8,7 +8,7 @@ This project includes or references third‑party components licensed under thei
 - System.Text.Json (.NET platform licenses)
 - SharpDX (MIT)
 
-You must comply with the licenses for these components in addition to the project’s LICENSE‑BETA.txt.
+You must comply with the licenses for these components in addition to the project’s LICENSE.
 
 Attribution
 - © 2025 Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal.

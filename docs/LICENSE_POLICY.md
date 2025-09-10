@@ -10,5 +10,5 @@ Future Plan
 - v1.0.0 and later will be offered as a premium app with a commercial EULA.
 - This repo may continue to host non‑commercial examples, SDKs, or documentation.
 
-See also: LICENSE-BETA.txt, NOTICE, CONTRIBUTING.md.
+See also: LICENSE, NOTICE, CONTRIBUTING.md.
 
