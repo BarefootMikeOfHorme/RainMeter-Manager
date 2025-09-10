@@ -40,7 +40,7 @@
 
 ; Define pages to display during installation
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "/d/RainmeterManager/LICENSE.txt"
+!insertmacro MUI_PAGE_LICENSE "/d/RainmeterManager/LICENSE-BETA.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_INSTFILES

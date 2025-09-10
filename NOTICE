@@ -1,0 +1,15 @@
+# NOTICE
+
+This project includes or references third‑party components licensed under their respective terms, including but not limited to:
+
+- SkiaSharp (MIT): https://github.com/mono/SkiaSharp
+- Microsoft.Web.WebView2 (MICROSOFT SOFTWARE LICENSE TERMS)
+- Newtonsoft.Json (MIT)
+- System.Text.Json (.NET platform licenses)
+- SharpDX (MIT)
+
+You must comply with the licenses for these components in addition to the project’s LICENSE‑BETA.txt.
+
+Attribution
+- © 2025 Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal.
+

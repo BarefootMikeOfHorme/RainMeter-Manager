@@ -1,0 +1,51 @@
+RainmeterManager Beta Non‑Commercial License (RB‑NC‑1.0)
+
+IMPORTANT: This is not legal advice. Consult an attorney for specific guidance.
+
+1. Definitions
+- "Software" means the RainmeterManager source code and accompanying materials in this repository.
+- "Maintainers" means Michael D Shortland (aka BarefootMike) and authorized collaborators.
+- "Non‑Commercial Use" means use that is not intended for or directed toward commercial advantage or monetary compensation, including internal evaluation, personal use, education, research, and testing.
+- "Pre‑Release" means any version, tag, or build labeled alpha, beta, preview, rc, canary, or matching v1.0.0-* suffixes, or any version prior to the final v1.0.0 release.
+
+2. Grant of Rights (Pre‑Release Only)
+Subject to the terms below, Maintainers grant you a worldwide, royalty‑free, non‑exclusive license to:
+- use, copy, build, test, and modify the Software solely for Non‑Commercial Use during the Pre‑Release period;
+- create non‑commercial forks and derivative works for evaluation purposes; and
+- share unmodified or modified copies for Non‑Commercial Use, provided you include this license and preserve notices.
+
+3. Restrictions
+You may NOT:
+- use the Software, in whole or in part, for Commercial Use, including selling, licensing, hosting as a service, or distributing with any product or service for a fee;
+- distribute the Software or derivatives via app stores or commercial channels;
+- remove or alter copyright, attribution, or license notices;
+- use any Maintainers' names, marks, or branding to endorse or promote products without prior written permission.
+
+4. Third‑Party Components
+Third‑party libraries included with or referenced by the Software are licensed under their respective licenses. This license does not grant rights to third‑party components. See NOTICE for attributions.
+
+5. Contributions and Re‑Licensing
+By submitting a contribution (e.g., pull request), you agree to license your contribution to the Maintainers under a perpetual, worldwide, irrevocable, royalty‑free license to use, modify, distribute, sublicense, and re‑license your contribution under any terms the Maintainers choose, including for commercial releases. If you cannot grant this right, do not contribute.
+
+6. Future Commercial Release
+Maintainers may, at their sole discretion, release subsequent versions of the Software (including v1.0.0 and later) under different terms, including a commercial EULA for a premium app store release. This license applies only to Pre‑Release versions. Your rights to any version are governed by the license accompanying that version.
+
+7. Termination
+This license terminates automatically if you breach its terms. Upon termination, you must cease use and distribution and destroy copies in your possession. Sections 3–9 survive termination.
+
+8. Disclaimer of Warranty
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON‑INFRINGEMENT. YOU ASSUME ALL RISKS OF USE.
+
+9. Limitation of Liability
+IN NO EVENT WILL THE MAINTAINERS BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR GOODWILL, ARISING OUT OF OR RELATING TO THIS LICENSE OR USE OF THE SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+10. Governing Law
+This license will be governed by the laws of the Maintainers’ principal place of business, without regard to conflicts of law principles.
+
+11. Attribution
+Include the following attribution in all copies and substantial portions of the Software and derivative works used under this license:
+"© 2025 Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal. Used under the RainmeterManager Beta Non‑Commercial License (RB‑NC‑1.0)."
+
+12. Contact
+For commercial licensing or other inquiries, contact: BarefootMikeOfHorme via GitHub.
+

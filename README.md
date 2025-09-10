@@ -192,6 +192,15 @@ Version information is managed without affecting filenames:
 - Build: Tracked in build metadata
 - Changelogs: Generated with each build
 
+## License (Pre‑Release)
+
+Pre‑release versions (e.g., v1.0.0-*) are licensed under the RainmeterManager Beta Non‑Commercial License (RB‑NC‑1.0). This permits free personal/internal building, testing, and evaluation, but forbids commercial use, paid distribution, or app store publication.
+
+- Full text: see `LICENSE-BETA.txt`
+- Third‑party attributions: see `NOTICE`
+
+A future premium store release (v1.0.0 and later) will be distributed under a separate commercial EULA.
+
 ## Continuous Integration
 
 Use the CI script for automated builds and testing:
