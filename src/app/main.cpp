@@ -2,7 +2,8 @@
 // Copyright (c) 2025 Michael D Shortland (aka BarefootMike) with his wonderful assistant WarpTerminal. All rights reserved.
 
 #include <windows.h>
-#include <combaseapi.h>\n#include <shellscalingapi.h>
+#include <combaseapi.h>
+#include <shellscalingapi.h>
 #include <dbghelp.h>
 #include <shellapi.h>
 #include <iostream>
@@ -10,6 +11,8 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <winreg.h>
+#include <cwchar>
 
 // Core application headers
 #include "core/logger.h"
@@ -103,7 +106,7 @@ static void ApplyCLIOptions(const CLIOptions& opts) {
     LOG_INFO("CLI: headless=" + std::string(opts.headless ? "true" : "false") +
              ", webEnabled=" + std::string(opts.webEnabled ? "true" : "false"));
 }
-LONG WINAPI UnhandledExceptionFilter(EXCEPTION_POINTERS* exceptionInfo);
+LONG WINAPI AppUnhandledExceptionFilter(EXCEPTION_POINTERS* exceptionInfo);
 bool InitializeCOMSubsystem();
 bool SetupDPIAwareness();
 bool SetupStructuredExceptionHandling();
@@ -479,7 +482,7 @@ static bool ValidateCLIOptions(const CLIOptions& opts, std::wstring& error) {
  * Captures crash context, generates minidumps, logs critical errors,
  * and attempts graceful recovery or emergency shutdown.
  */
-LONG WINAPI UnhandledExceptionFilter(EXCEPTION_POINTERS* exceptionInfo) {
+LONG WINAPI AppUnhandledExceptionFilter(EXCEPTION_POINTERS* exceptionInfo) {
     // Prevent recursive exception handling
     static bool handlingException = false;
     if (handlingException) {
@@ -583,7 +586,7 @@ bool SetupDPIAwareness() {
  * @brief Setup structured exception handling
  */
 bool SetupStructuredExceptionHandling() {
-    LPTOP_LEVEL_EXCEPTION_FILTER previous = SetUnhandledExceptionFilter(UnhandledExceptionFilter);
+    LPTOP_LEVEL_EXCEPTION_FILTER previous = SetUnhandledExceptionFilter(AppUnhandledExceptionFilter);
     
     // Enable crash dump generation
     SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
@@ -632,27 +635,47 @@ void GenerateMiniDump(EXCEPTION_POINTERS* exceptionInfo) {
  * @brief Validate minimum system requirements
  */
 bool ValidateSystemRequirements() {
-    // Check Windows version (Windows 10+)
-    OSVERSIONINFOEX osvi = {0};
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    osvi.dwMajorVersion = 10;
-    
-    DWORDLONG conditionMask = 0;
-    VER_SET_CONDITION(conditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
-    
-    if (!VerifyVersionInfo(&osvi, VER_MAJORVERSION, conditionMask)) {
-        return false; // Windows 10+ required
+    // Check Windows version (Windows 10+) using registry keys
+    DWORD major = 0;
+    HKEY hKey = nullptr;
+    LONG rc = RegOpenKeyExW(
+        HKEY_LOCAL_MACHINE,
+        L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
+        0,
+        KEY_READ | KEY_WOW64_64KEY,
+        &hKey);
+    if (rc == ERROR_SUCCESS) {
+        DWORD type = 0;
+        DWORD size = sizeof(DWORD);
+        // Preferred on Windows 10+
+        if (RegQueryValueExW(hKey, L"CurrentMajorVersionNumber", nullptr, &type,
+                              reinterpret_cast<LPBYTE>(&major), &size) != ERROR_SUCCESS || type != REG_DWORD) {
+            // Fallback: parse "CurrentVersion" (e.g., "10.0")
+            wchar_t ver[64] = {0};
+            size = sizeof(ver);
+            if (RegQueryValueExW(hKey, L"CurrentVersion", nullptr, &type,
+                                  reinterpret_cast<LPBYTE>(ver), &size) == ERROR_SUCCESS &&
+                (type == REG_SZ || type == REG_EXPAND_SZ)) {
+                wchar_t* end = nullptr;
+                long parsed = std::wcstol(ver, &end, 10);
+                if (parsed > 0) major = static_cast<DWORD>(parsed);
+            }
+        }
+        RegCloseKey(hKey);
     }
-    
+    if (major < 10) {
+        return false; // Require Windows 10+
+    }
+
     // Check available memory (minimum 1GB)
     MEMORYSTATUSEX memStatus = {0};
     memStatus.dwLength = sizeof(memStatus);
     GlobalMemoryStatusEx(&memStatus);
-    
+
     if (memStatus.ullTotalPhys < (1ULL * 1024 * 1024 * 1024)) {
         return false; // Insufficient memory
     }
-    
+
     return true;
 }
 
@@ -677,7 +700,7 @@ void CleanupAndExit(int exitCode) {
         Logger::flushLogs();
         
         // Cleanup security framework
-        Security::cleanupCrypto();
+        Security::Cleanup();
         
         // Shutdown logging system
         Logger::shutdown();

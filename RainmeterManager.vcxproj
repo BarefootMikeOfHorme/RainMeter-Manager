@@ -100,6 +100,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateManifest>false</GenerateManifest>
       <AdditionalDependencies>user32.lib;gdi32.lib;comctl32.lib;shell32.lib;shlwapi.lib;comdlg32.lib;ole32.lib;advapi32.lib;wininet.lib;dbghelp.lib;version.lib;bcrypt.lib;wintrust.lib;crypt32.lib;d2d1.lib;dwrite.lib;windowscodecs.lib;shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -112,6 +113,10 @@
       <Optimization>Disabled</Optimization>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
+    <Link>
+      <GenerateManifest>false</GenerateManifest>
+      <AdditionalOptions>/MANIFEST:NO %(AdditionalOptions)</AdditionalOptions>
+    </Link>
   </ItemDefinitionGroup>
   
   <!-- Release specific settings -->
@@ -126,20 +131,30 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <GenerateManifest>false</GenerateManifest>
+      <AdditionalOptions>/MANIFEST:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   
   <!-- Source files -->
   <ItemGroup>
-    <ClCompile Include="src\app\main.cpp" />
-    <ClCompile Include="src\core\logger.cpp" />
-    <ClCompile Include="src\core\security.cpp" />
-    <ClCompile Include="src\widgets\community\community_feedback_integration.cpp" />
-    <ClCompile Include="src\core\logger_adapter.cpp" />
-    <ClCompile Include="src\core\security_adapter.cpp" />
-    <ClCompile Include="src\app\rainmgrapp.cpp" />
-    <ClCompile Include="src\config\config_manager.cpp" />
-    <ClCompile Include="src\core\service_locator.cpp" />
+    <ClCompile Include="src\\app\\main.cpp" />
+    <ClCompile Include="src\\core\\logger.cpp" />
+    <ClCompile Include="src\\core\\security.cpp" />
+    <ClCompile Include="src\\widgets\\community\\community_feedback_integration.cpp" />
+    <ClCompile Include="src\\core\\logger_adapter.cpp" />
+    <ClCompile Include="src\\core\\security_adapter.cpp" />
+    <ClCompile Include="src\\app\\rainmgrapp.cpp" />
+    <ClCompile Include="src\\config\\config_manager.cpp" />
+    <ClCompile Include="src\\core\\service_locator.cpp" />
+    <ClCompile Include="src\\ui\\splash_screen.cpp" />
+    <ClCompile Include="src\\ui\\options_window.cpp" />
+    <ClCompile Include="src\\ui\\dashboard_tab.cpp" />
+    <ClCompile Include="src\\ui\\task_manager_tab.cpp" />
+    <ClCompile Include="src\\ui\\ui_prefs.cpp" />
+    <ClCompile Include="src\\render\\ipc\\render_ipc_bridge_stub.cpp" />
+    <ClCompile Include="src\\render\\ipc\\shared_memory_manager.cpp" />
+    <ClCompile Include="src\\render\\ipc\\named_pipe_channel_stub.cpp" />
     <!-- Add other cpp files as you create them -->
   </ItemGroup>
   

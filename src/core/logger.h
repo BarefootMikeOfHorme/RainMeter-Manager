@@ -27,6 +27,12 @@
 #ifdef FATAL
 #undef FATAL
 #endif
+#ifdef DEBUG
+#undef DEBUG
+#endif
+#ifdef TRACE
+#undef TRACE
+#endif
 
 // Enterprise-level log levels
 enum class LogLevel {
@@ -115,6 +121,9 @@ public:
     static std::string captureStackTrace(int skipFrames = 1);
     static void dumpSystemInfo();
     static void flushLogs();
+
+    // Expose thread id helper for callers that need it in error macros
+    static std::string getThreadId();
     
     // Cleanup and shutdown
     static void shutdown();
@@ -138,7 +147,6 @@ private:
     // Helper methods
     static std::string getCurrentTimestamp();
     static std::string logLevelToString(LogLevel level);
-    static std::string getThreadId();
     static void processLogQueue();
     static void rotateLogFile();
     static bool shouldLog(LogLevel level);

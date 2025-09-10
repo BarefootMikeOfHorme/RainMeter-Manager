@@ -44,10 +44,10 @@
 
   <ItemGroup>
     <!-- Core Rendering Libraries -->
-    <PackageReference Include="SkiaSharp" Version="2.88.6" />
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
     <PackageReference Include="System.Management" Version="8.0.0" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="2.88.6" />
-    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="2.88.6" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.Views.Desktop" Version="3.119.0" />
     
     <!-- Direct3D Support -->
     <PackageReference Include="SharpDX" Version="4.2.0" />
@@ -60,7 +60,7 @@
     
     <!-- JSON Processing -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.6" />
     
     <!-- HTTP Client for API Content -->
     <PackageReference Include="System.Net.Http" Version="4.3.4" />

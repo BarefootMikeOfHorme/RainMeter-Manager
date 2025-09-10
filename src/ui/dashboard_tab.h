@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <string>
+#include "ui_theme.h"
 
 namespace RainmeterManager {
 namespace UI {

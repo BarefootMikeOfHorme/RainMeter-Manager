@@ -1,0 +1,33 @@
+title = "RainmeterManager gitleaks configuration"
+
+[extend]
+  useDefaultRules = true
+
+[allowlist]
+  description = "Allow test fixture keys and exclude noisy/generated paths"
+  files = [
+    '''^tests/security/security_tests\.cpp$''',
+    '''^tests/unit/core_tests\.cpp$'''
+  ]
+  paths = [
+    '''^\.vs/''',
+    '''^build/''',
+    '''^build/bin/''',
+    '''^build/obj/''',
+    '''^changes/security_reports/''',
+    '''^changes/build_reports/''',
+    '''^changes/.*\.txt$'''
+  ]
+  commits = [
+    "05b23ab240c39a204abf7877d29594c2000f3630",
+    "3027aa100bfc876181575cba28e27956b2cf5cc0"
+  ]
+  regexes = [
+    '''SecretKey1234567890123456789012''',
+    '''TamperTestKey123456789012345678''',
+    '''PrivilegeTestKey123456789012345''',
+    '''MySecretKey12345''',
+    '''Key1234567890123''',
+    '''TestKey123456789'''
+  ]
+
