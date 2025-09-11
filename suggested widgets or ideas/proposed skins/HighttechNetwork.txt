@@ -1,0 +1,205 @@
+[Rainmeter]
+Update=1000
+AccurateText=1
+
+[Variables]
+; --- Visual Variables ---
+FontName=Consolas
+FontSize=9
+FontColor=255,255,255,200
+BarHeight=10
+BarColor=#00FFFF#
+BarColorAlert=#FF00FF#
+BackgroundSolidColor=0,0,0,100
+BackgroundBorderColor=0,255,255,200
+; --- Network Interface ---
+InterfaceName="Ethernet"
+; --- Paths to scripts/icons ---
+ScriptPath="#@#Resources\NetMonitor.py"
+IconPath="#@#Resources\NetworkIcon.png"
+SoundAlertPath="#@#Resources\network_alert.wav"
+
+; --- MEASURES ---
+; This measure runs the Python script and captures its output
+[MeasureNetworkData]
+Measure=Plugin
+Plugin=RunCommand
+Program=python
+Parameter="#ScriptPath# full"
+OutputType=ANSI
+UpdateRate=1
+Timeout=2000
+
+; Measures to extract data from the JSON output
+[MeasureBytesSent]
+Measure=String
+String=[MeasureNetworkData]
+StringIndex=1
+RegExp=(?siU)^.*?"bytes_sent": (\d+),.*?$
+UpdateDivider=1
+
+[MeasureBytesRecv]
+Measure=String
+String=[MeasureNetworkData]
+StringIndex=1
+RegExp=(?siU)^.*?"bytes_recv": (\d+),.*?$
+UpdateDivider=1
+
+[MeasurePacketsSent]
+Measure=String
+String=[MeasureNetworkData]
+StringIndex=1
+RegExp=(?siU)^.*?"packets_sent": (\d+),.*?$
+UpdateDivider=1
+
+[MeasurePacketsRecv]
+Measure=String
+String=[MeasureNetworkData]
+StringIndex=1
+RegExp=(?siU)^.*?"packets_recv": (\d+),.*?$
+UpdateDivider=1
+
+[MeasureLocalIP]
+Measure=String
+String=[MeasureNetworkData]
+StringIndex=1
+RegExp=(?siU)^.*?"local_ip": "(.+?)".*?$
+UpdateDivider=60
+
+[MeasureIsUp]
+Measure=String
+String=[MeasureNetworkData]
+StringIndex=1
+RegExp=(?siU)^.*?"is_up": (.+?),.*?$
+UpdateDivider=1
+
+; --- METERS (Visual Elements) ---
+
+; Background and Border
+[MeterBackground]
+Meter=Shape
+Shape=Rectangle 0,0,300,160
+SolidColor=#BackgroundSolidColor#
+BorderColor=#BackgroundBorderColor#
+BorderWidth=1
+
+; Title
+[MeterTitle]
+Meter=String
+Text="NETWORK ANALYSIS"
+StringAlign=CENTER
+X=150
+Y=10
+FontColor=#BarColor#
+FontSize=12
+FontFace=#FontName#
+
+; Interface Status
+[MeterInterfaceStatus]
+Meter=String
+Text="Status: %1"
+MeasureName=MeasureIsUp
+X=10
+Y=35
+FontColor=100,255,100,255
+FontSize=#FontSize#
+FontFace=#FontName#
+
+; IPs
+[MeterLocalIP]
+Meter=String
+Text="LOCAL IP: %1"
+MeasureName=MeasureLocalIP
+X=10
+Y=50
+FontColor=#FontColor#
+FontSize=#FontSize#
+FontFace=#FontName#
+
+[MeterPublicIP]
+Meter=String
+Text="PUBLIC IP: Fetching..." ; Requires advanced webparser or script logic
+X=10
+Y=65
+FontColor=#FontColor#
+FontSize=#FontSize#
+FontFace=#FontName#
+
+; Packets
+[MeterPacketsSent]
+Meter=String
+Text="Packets Sent: %1"
+MeasureName=MeasurePacketsSent
+X=10
+Y=85
+FontColor=#FontColor#
+FontSize=#FontSize#
+FontFace=#FontName#
+
+[MeterPacketsRecv]
+Meter=String
+Text="Packets Recv: %1"
+MeasureName=MeasurePacketsRecv
+X=10
+Y=100
+FontColor=#FontColor#
+FontSize=#FontSize#
+FontFace=#FontName#
+
+; Bar Graphs for activity (Conceptual)
+[MeterRecvBar]
+Meter=Bar
+MeasureName=MeasureBytesRecv
+X=10
+Y=120
+W=280
+H=#BarHeight#
+BarColor=#BarColor#
+SolidColor=#BackgroundSolidColor#
+; Trigger alert audio on high usage
+IfCondition=(MeasureBytesRecv > 100000000)
+IfTrueAction=[!CommandMeasure "MeasureNetworkData" "Run"] [!PlaySound "#SoundAlertPath#"]
+
+[MeterRecvText]
+Meter=String
+MeasureName=MeasureBytesRecv
+X=10
+Y=135
+FontColor=#FontColor#
+FontSize=#FontSize#
+FontFace=#FontName#
+Text="RECV: %1B"
+Percentual=1
+Group=NetworkBars
+
+[MeterSentBar]
+Meter=Bar
+MeasureName=MeasureBytesSent
+X=10
+Y=140
+W=280
+H=#BarHeight#
+BarColor=#BarColor#
+SolidColor=#BackgroundSolidColor#
+; Trigger alert audio on high usage
+IfCondition=(MeasureBytesSent > 100000000)
+IfTrueAction=[!CommandMeasure "MeasureNetworkData" "Run"] [!PlaySound "#SoundAlertPath#"]
+
+[MeterSentText]
+Meter=String
+MeasureName=MeasureBytesSent
+X=10
+Y=155
+FontColor=#FontColor#
+FontSize=#FontSize#
+FontFace=#FontName#
+Text="SENT: %1B"
+Percentual=1
+Group=NetworkBars
+
+; --- INSTRUCTIONS FOR USE ---
+; 1. Save the Python script as NetMonitor.py in a subfolder named '@Resources'
+;    inside your skin folder.
+; 2. Add 'psutil' to your Python environment (pip install psutil).
+; 3. Use your own custom sound files and images.
+; 4. Use a font like 'Consolas' for a hacker terminal aesthetic.

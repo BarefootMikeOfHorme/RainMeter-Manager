@@ -11,7 +11,6 @@
 #pragma comment(lib, "oleaut32.lib")
 
 using namespace RainmeterManager::UI;
-using namespace RainmeterManager::Core;
 
 // Static instance for SplashManager
 SplashManager* SplashManager::instance_ = nullptr;
@@ -78,14 +77,14 @@ CinematicSplashScreen::CinematicSplashScreen(HINSTANCE hInstance, const Config& 
     // Initialize DirectX components
     HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2dFactory_);
     if (FAILED(hr)) {
-        LogEvent(L"Failed to create D2D1 factory", LogLevel::Error);
+        LogEvent(L"Failed to create D2D1 factory", ::LogLevel::ERROR);
         return;
     }
     
     hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(writeFactory_), 
                             reinterpret_cast<IUnknown**>(&writeFactory_));
     if (FAILED(hr)) {
-        LogEvent(L"Failed to create DirectWrite factory", LogLevel::Error);
+        LogEvent(L"Failed to create DirectWrite factory", ::LogLevel::ERROR);
         return;
     }
     
@@ -117,17 +116,17 @@ bool CinematicSplashScreen::Show() {
     LogEvent(L"Showing cinematic splash screen...");
     
     if (!Initialize()) {
-        LogEvent(L"Failed to initialize splash screen", LogLevel::Error);
+        LogEvent(L"Failed to initialize splash screen", ::LogLevel::ERROR);
         return false;
     }
     
     if (!CreateSplashWindow()) {
-        LogEvent(L"Failed to create splash window", LogLevel::Error);
+        LogEvent(L"Failed to create splash window", ::LogLevel::ERROR);
         return false;
     }
     
     if (!LoadResources()) {
-        LogEvent(L"Failed to load resources", LogLevel::Error);
+LogEvent(L"Failed to load resources", ::LogLevel::ERROR);
         return false;
     }
     
@@ -258,7 +257,7 @@ bool CinematicSplashScreen::Initialize() {
     if (!RegisterClassEx(&wc)) {
         DWORD error = GetLastError();
         if (error != ERROR_CLASS_ALREADY_EXISTS) {
-            LogEvent(L"Failed to register splash window class, error: " + std::to_wstring(error), LogLevel::Error);
+LogEvent(L"Failed to register splash window class, error: " + std::to_wstring(error), ::LogLevel::ERROR);
             return false;
         }
     }
@@ -279,7 +278,7 @@ bool CinematicSplashScreen::CreateSplashWindow() {
     
     if (!splashWindow_) {
         DWORD error = GetLastError();
-        LogEvent(L"Failed to create splash window, error: " + std::to_wstring(error), LogLevel::Error);
+        LogEvent(L"Failed to create splash window, error: " + std::to_wstring(error), ::LogLevel::ERROR);
         return false;
     }
     
@@ -305,14 +304,23 @@ bool CinematicSplashScreen::CreateSplashWindow() {
     
     D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
     
+    // Ensure factory exists; attempt to create if missing
+    if (!d2dFactory_) {
+        HRESULT hrFactory = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2dFactory_);
+        if (FAILED(hrFactory) || !d2dFactory_) {
+            LogEvent(L"D2D1 factory unavailable; cannot create render target", ::LogLevel::ERROR);
+            return false;
+        }
+    }
+    
     HRESULT hr = d2dFactory_->CreateHwndRenderTarget(
         D2D1::RenderTargetProperties(),
         D2D1::HwndRenderTargetProperties(splashWindow_, size),
         &renderTarget_
     );
     
-    if (FAILED(hr)) {
-        LogEvent(L"Failed to create render target", LogLevel::Error);
+    if (FAILED(hr) || !renderTarget_) {
+        LogEvent(L"Failed to create render target", ::LogLevel::ERROR);
         return false;
     }
     
@@ -322,6 +330,16 @@ bool CinematicSplashScreen::CreateSplashWindow() {
 bool CinematicSplashScreen::LoadResources() {
     if (!renderTarget_) {
         return false;
+    }
+    
+    // Ensure DirectWrite factory exists
+    if (!writeFactory_) {
+        HRESULT hrWF = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(writeFactory_),
+                                          reinterpret_cast<IUnknown**>(&writeFactory_));
+        if (FAILED(hrWF) || !writeFactory_) {
+            LogEvent(L"DirectWrite factory unavailable; skipping text resources", ::LogLevel::WARNING);
+            // We can proceed without text; just skip text resources
+        }
     }
     
     HRESULT hr;
@@ -407,7 +425,6 @@ bool CinematicSplashScreen::LoadResources() {
 void CinematicSplashScreen::CleanupResources() {
     StopLifecycleWatchdog();
     if (rippleGradientBrush_) rippleGradientBrush_->Release();
-    if (waterGradientBrush_) waterGradientBrush_->Release();
     if (leafBrush_) leafBrush_->Release();
     if (dropBrush_) dropBrush_->Release();
     if (rippleBrush_) rippleBrush_->Release();
@@ -972,9 +989,20 @@ void CinematicSplashScreen::CenterWindow() {
                 SWP_NOACTIVATE);
 }
 
-void CinematicSplashScreen::LogEvent(const std::wstring& event, LogLevel level) {
-    Logger& logger = Logger::GetInstance();
-    logger.LogWide(level, L"CinematicSplashScreen", event);
+void CinematicSplashScreen::LogEvent(const std::wstring& event, ::LogLevel level) const {
+    auto& logger = RainmeterManager::Core::Logger::GetInstance();
+    RainmeterManager::Core::LogLevel coreLvl = RainmeterManager::Core::LogLevel::Info;
+    switch (level) {
+        case ::LogLevel::TRACE:    coreLvl = RainmeterManager::Core::LogLevel::Trace; break;
+        case ::LogLevel::DEBUG:    coreLvl = RainmeterManager::Core::LogLevel::Debug; break;
+        case ::LogLevel::INFO:     coreLvl = RainmeterManager::Core::LogLevel::Info; break;
+        case ::LogLevel::WARNING:  coreLvl = RainmeterManager::Core::LogLevel::Warning; break;
+        case ::LogLevel::ERROR:    coreLvl = RainmeterManager::Core::LogLevel::Error; break;
+        case ::LogLevel::CRITICAL: coreLvl = RainmeterManager::Core::LogLevel::Critical; break;
+        case ::LogLevel::FATAL:    coreLvl = RainmeterManager::Core::LogLevel::Fatal; break;
+        default:                   coreLvl = RainmeterManager::Core::LogLevel::Info; break;
+    }
+    logger.LogWide(coreLvl, L"CinematicSplashScreen", event);
 }
 
 // Additional methods for compatibility and manager
@@ -1001,8 +1029,10 @@ void CinematicSplashScreen::StartLifecycleWatchdog() {
     if (lifecycleActive_) return;
     lifecycleActive_ = true;
     lifecycleThread_ = std::thread([this]() {
-        const auto minSpan = std::chrono::milliseconds(std::max(0, config_.minDisplayTimeMs));
-        const auto maxSpan = std::chrono::milliseconds(std::max(config_.minDisplayTimeMs, config_.maxDisplayTimeMs));
+        int minMs = (config_.minDisplayTimeMs < 0) ? 0 : config_.minDisplayTimeMs;
+        int maxMs = (config_.minDisplayTimeMs > config_.maxDisplayTimeMs) ? config_.minDisplayTimeMs : config_.maxDisplayTimeMs;
+        const auto minSpan = std::chrono::milliseconds(minMs);
+        const auto maxSpan = std::chrono::milliseconds(maxMs);
         auto start = startTime_;
         for (;;) {
             if (shouldStopAnimation_) break;

@@ -79,6 +79,9 @@ public:
     void SetMainWindow(HWND hwnd) { mainWindow_ = hwnd; }
     void ShowMainWindow();
     
+    // Deferred initialization (Phase 1 - avoid race conditions)
+    void StartDeferredInitialization(HWND hwnd);
+    
     // Application information
     HINSTANCE GetHInstance() const { return hInstance_; }
     const std::wstring& GetApplicationPath() const { return applicationPath_; }

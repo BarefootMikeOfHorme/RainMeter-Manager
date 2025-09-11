@@ -39,14 +39,17 @@ bool Logger::initialize(const std::string& logFilePath, LogRotationConfig config
 void Logger::log(LogLevel level, const std::string& message, const char* file, int line, const char* function) {
     if (!shouldLog(level)) return;
     
+    const char* fileCStr = file ? file : "";
+    const char* funcCStr = function ? function : "";
+
     LogEntry entry = {
         level,
         message,
         std::chrono::system_clock::now(),
         getThreadId(),
-        std::filesystem::path(file).filename().string(),
+        std::filesystem::path(fileCStr).filename().string(),
         line,
-        function
+        std::string(funcCStr)
     };
     
     if (asyncLoggingEnabled) {

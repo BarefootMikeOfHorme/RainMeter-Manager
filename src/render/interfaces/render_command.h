@@ -35,7 +35,10 @@ namespace RainmeterManager::Render {
         Destroy = 3,
         SwitchBackend = 4,
         UpdateContent = 5,
-        SetProperty = 6
+        SetProperty = 6,
+        // Diagnostics / Data queries (must align with C#)
+        GetSystemSnapshot = 100,
+        GetProcessSnapshot = 101
     };
 
     // Render result status

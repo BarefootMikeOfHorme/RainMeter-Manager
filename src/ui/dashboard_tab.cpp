@@ -1,5 +1,8 @@
 #include "dashboard_tab.h"
 #include "ui_theme.h"
+#include "ui_prefs.h"
+#include "../render/ipc/render_ipc_bridge.h"
+#include "../render/interfaces/render_command.h"
 #include <commctrl.h>
 #include <string>
 
@@ -164,9 +167,19 @@ LRESULT DashboardTab::HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     case WM_SIZE:
         LayoutChildren();
         return 0;
+    case WM_TIMER:
+        if (wParam == 1001) {
+            RequestAndUpdateSnapshot();
+            return 0;
+        }
+        break;
+    case WM_DESTROY:
+        StopPolling();
+        break;
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
+    return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 void DashboardTab::CreateChildren() {
@@ -187,6 +200,9 @@ void DashboardTab::CreateChildren() {
     SendMessageW(hTileCpu_, WM_SETFONT, (WPARAM)gTileTitleFont, TRUE);
     SendMessageW(hTileMem_, WM_SETFONT, (WPARAM)gTileTitleFont, TRUE);
     SendMessageW(hTileNet_, WM_SETFONT, (WPARAM)gTileTitleFont, TRUE);
+
+    // Start polling IPC after creating children
+    StartPolling();
 }
 
 void DashboardTab::LayoutChildren() {
@@ -203,5 +219,145 @@ void DashboardTab::LayoutChildren() {
     MoveWindow(hTileCpu_, margin, y, tileW, tileH, TRUE);
     MoveWindow(hTileMem_, margin + tileW + gap, y, tileW, tileH, TRUE);
     MoveWindow(hTileNet_, margin + (tileW + gap) * 2, y, tileW, tileH, TRUE);
+}
+
+void DashboardTab::StartPolling() {
+    UI::GeneralPrefs gp{};
+    bool useIPC = UI::LoadGeneralPrefs(gp) ? gp.enableIPC : false;
+    if (useIPC) {
+        EnsureIPC();
+    }
+    if (timerId_ == 0) {
+        timerId_ = SetTimer(hwnd_, 1001, 1000, nullptr); // 1s
+    }
+}
+
+void DashboardTab::StopPolling() {
+    if (timerId_ != 0) {
+        KillTimer(hwnd_, timerId_);
+        timerId_ = 0;
+    }
+}
+
+static bool FileExistsW(const std::wstring& path) {
+    DWORD attrs = GetFileAttributesW(path.c_str());
+    return (attrs != INVALID_FILE_ATTRIBUTES) && !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+bool DashboardTab::ResolveRenderProcess(std::wstring& outPath, std::wstring& outArgs) {
+    // Try exe under repo build output
+    wchar_t modulePath[MAX_PATH];
+    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
+    std::wstring exeDir(modulePath);
+    size_t pos = exeDir.find_last_of(L"\\/");
+    if (pos != std::wstring::npos) exeDir.erase(pos);
+
+    // Assume repo root two levels up from /src/app/... (best-effort dev heuristic)
+    std::wstring root = exeDir;
+    for (int i = 0; i < 3; ++i) {
+        size_t p = root.find_last_of(L"\\/");
+        if (p == std::wstring::npos) break;
+        root.erase(p);
+    }
+
+    std::wstring exeCandidate = root + L"\\renderprocess\\bin\\Debug\\net8.0-windows\\win-x64\\RenderProcess.exe";
+    if (FileExistsW(exeCandidate)) {
+        outPath = exeCandidate;
+        outArgs.clear();
+        return true;
+    }
+
+    std::wstring dllCandidate = root + L"\\renderprocess\\bin\\Debug\\net8.0-windows\\win-x64\\RenderProcess.dll";
+    if (FileExistsW(dllCandidate)) {
+        outPath = L"dotnet"; // rely on PATH
+        outArgs = L"\"" + dllCandidate + L"\"";
+        return true;
+    }
+
+    // Fallback: hope it's in PATH
+    outPath = L"RenderProcess.exe";
+    outArgs.clear();
+    return true;
+}
+
+void DashboardTab::EnsureIPC() {
+    if (!ipc_) {
+        ipc_ = std::make_unique<RainmeterManager::Render::RenderIPCBridge>(RainmeterManager::Render::IPCMode::SharedMemory);
+        ipc_->SetDefaultTimeout(1500);
+
+        std::wstring path, args;
+        ResolveRenderProcess(path, args);
+        ipc_->InitializeIPC();
+        ipc_->StartRenderProcess(path, args);
+    }
+}
+
+std::wstring DashboardTab::FormatDouble(double v, int decimals) {
+    wchar_t buf[64];
+    swprintf(buf, 64, L"%.*f", decimals, v);
+    return std::wstring(buf);
+}
+
+bool DashboardTab::ExtractDouble(const std::string& json, const char* keyPascal, const char* keyCamel, double& outVal) {
+    auto findKey = [&](const char* k) -> size_t {
+        std::string needle = std::string("\"") + k + "\"";
+        return json.find(needle);
+    };
+    size_t pos = findKey(keyPascal);
+    if (pos == std::string::npos && keyCamel) pos = findKey(keyCamel);
+    if (pos == std::string::npos) return false;
+    pos = json.find(':', pos);
+    if (pos == std::string::npos) return false;
+    ++pos;
+    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) ++pos;
+    size_t end = pos;
+    while (end < json.size() && (isdigit((unsigned char)json[end]) || json[end] == '.' || json[end] == 'e' || json[end] == 'E' || json[end] == '+' || json[end] == '-')) ++end;
+    if (end <= pos) return false;
+    try {
+        outVal = std::stod(json.substr(pos, end - pos));
+        return true;
+    } catch (...) { return false; }
+}
+
+void DashboardTab::RequestAndUpdateSnapshot() {
+    UI::GeneralPrefs gp{};
+    bool useIPC = UI::LoadGeneralPrefs(gp) ? gp.enableIPC : false;
+    if (!useIPC) {
+        SetWindowTextW(hTileCpu_, L"CPU: --%");
+        SetWindowTextW(hTileMem_, L"Memory: -- / -- MB");
+        SetWindowTextW(hTileNet_, L"Network: Rx -- MB/s | Tx -- MB/s");
+        return;
+    }
+    EnsureIPC();
+    if (!ipc_) return;
+
+    RainmeterManager::Render::RenderCommand cmd{};
+    cmd.commandId = localCommandId_++;
+    cmd.commandType = RainmeterManager::Render::RenderCommandType::GetSystemSnapshot;
+    cmd.widgetId = 0;
+    cmd.windowHandle = hwnd_;
+    cmd.backendType = RainmeterManager::Render::RenderBackendType::Auto;
+    cmd.bounds = {0,0,0,0};
+    cmd.timestamp = (uint64_t)GetTickCount64();
+
+    auto result = ipc_->SendCommand(cmd, 1500);
+    if (result.status == RainmeterManager::Render::RenderResultStatus::Success) {
+        const std::string& json = result.errorMessage;
+        // Parse fields (support both PascalCase and camelCase)
+        double cpu = 0.0, memUsed = 0.0, memTotal = 0.0, rx = 0.0, tx = 0.0;
+        ExtractDouble(json, "CpuTotalPercent", "cpuTotalPercent", cpu);
+        ExtractDouble(json, "MemoryUsedMB", "memoryUsedMB", memUsed);
+        ExtractDouble(json, "MemoryTotalMB", "memoryTotalMB", memTotal);
+        ExtractDouble(json, "NetworkRecvMBps", "networkRecvMBps", rx);
+        ExtractDouble(json, "NetworkSendMBps", "networkSendMBps", tx);
+
+        std::wstring cpuText = L"CPU: " + FormatDouble(cpu, 1) + L"%";
+        std::wstring memText = L"Memory: " + FormatDouble(memUsed, 0) + L" / " + FormatDouble(memTotal, 0) + L" MB";
+        std::wstring netText = L"Network: Rx " + FormatDouble(rx, 2) + L" MB/s | Tx " + FormatDouble(tx, 2) + L" MB/s";
+
+        SetWindowTextW(hTileCpu_, cpuText.c_str());
+        SetWindowTextW(hTileMem_, memText.c_str());
+        SetWindowTextW(hTileNet_, netText.c_str());
+    }
 }
 

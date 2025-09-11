@@ -304,7 +304,7 @@ public class IPCMessageHandler : IDisposable
 
     #region Private Implementation
 
-    private async Task<bool> InitializeSharedMemory()
+    private Task<bool> InitializeSharedMemory()
     {
         try
         {
@@ -320,12 +320,12 @@ public class IPCMessageHandler : IDisposable
             _accessMutex = Mutex.OpenExisting($"{_sharedMemoryName}_Mutex");
 
             _logger.LogDebug("Shared memory initialized successfully");
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to initialize shared memory");
-            return false;
+            return Task.FromResult(false);
         }
     }
 
@@ -410,20 +410,20 @@ public class IPCMessageHandler : IDisposable
         }
     }
 
-    private async Task<bool> ReadCommandFromSharedMemory()
+    private Task<bool> ReadCommandFromSharedMemory()
     {
         try
         {
             if (_memoryAccessor == null || _accessMutex == null)
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             // Wait for exclusive access
             if (!_accessMutex.WaitOne(5000))
             {
                 _logger.LogWarning("Timeout waiting for shared memory access");
-                return false;
+                return Task.FromResult(false);
             }
 
             try
@@ -432,7 +432,7 @@ public class IPCMessageHandler : IDisposable
                 bool commandReady = _memoryAccessor.ReadBoolean(16); // Offset for commandReady field
                 if (!commandReady)
                 {
-                    return false;
+                    return Task.FromResult(false);
                 }
 
                 // Read command size
@@ -440,7 +440,7 @@ public class IPCMessageHandler : IDisposable
                 if (commandSize <= 0 || commandSize > 1024 * 1024) // Max 1MB command
                 {
                     _logger.LogError($"Invalid command size: {commandSize}");
-                    return false;
+                    return Task.FromResult(false);
                 }
 
                 // Read command data
@@ -457,7 +457,7 @@ public class IPCMessageHandler : IDisposable
                     // Mark command as processed
                     _memoryAccessor.Write(16, false); // Clear commandReady flag
 
-                    return true;
+                    return Task.FromResult(true);
                 }
             }
             finally
@@ -470,7 +470,7 @@ public class IPCMessageHandler : IDisposable
             _logger.LogError(ex, "Error reading command from shared memory");
         }
 
-        return false;
+        return Task.FromResult(false);
     }
 
     private async Task<bool> ReadCommandFromNamedPipe()
@@ -535,13 +535,13 @@ public class IPCMessageHandler : IDisposable
         return false;
     }
 
-    private async Task<bool> SendResultViaSharedMemory(RenderResult result)
+    private Task<bool> SendResultViaSharedMemory(RenderResult result)
     {
         try
         {
             if (_memoryAccessor == null || _accessMutex == null)
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             // Serialize result
@@ -549,14 +549,14 @@ public class IPCMessageHandler : IDisposable
             if (resultData.Length > 1024 * 1024) // Max 1MB
             {
                 _logger.LogError($"Result too large: {resultData.Length} bytes");
-                return false;
+                return Task.FromResult(false);
             }
 
             // Wait for exclusive access
             if (!_accessMutex.WaitOne(5000))
             {
                 _logger.LogWarning("Timeout waiting for shared memory access");
-                return false;
+                return Task.FromResult(false);
             }
 
             try
@@ -574,7 +574,7 @@ public class IPCMessageHandler : IDisposable
                 // Signal result ready
                 _resultEvent?.Set();
 
-                return true;
+                return Task.FromResult(true);
             }
             finally
             {
@@ -586,7 +586,7 @@ public class IPCMessageHandler : IDisposable
             _logger.LogError(ex, "Error sending result via shared memory");
         }
 
-        return false;
+        return Task.FromResult(false);
     }
 
     private async Task<bool> SendResultViaNamedPipe(RenderResult result)
@@ -735,7 +735,7 @@ public class IPCMessageHandler : IDisposable
         }
     }
 
-    private async Task CleanupAsync()
+    private Task CleanupAsync()
     {
         lock (_disposeLock)
         {
@@ -767,6 +767,7 @@ public class IPCMessageHandler : IDisposable
                 _logger.LogError(ex, "Error during cleanup");
             }
         }
+        return Task.CompletedTask;
     }
 
     #endregion

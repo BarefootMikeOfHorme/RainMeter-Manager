@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>false</UseWPF>
     <PlatformTarget>x64</PlatformTarget>
@@ -31,6 +31,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <NoWarn>$(NoWarn);NU1701;CS0618</NoWarn>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <Optimize>false</Optimize>
@@ -47,7 +52,7 @@
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0" />
-    <PackageReference Include="SkiaSharp.Views.Desktop" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.0" />
     
     <!-- Direct3D Support -->
     <PackageReference Include="SharpDX" Version="4.2.0" />
@@ -118,5 +123,10 @@
     </ItemGroup>
     <Copy SourceFiles="@(NativeLibs)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
   </Target>
+
+  <!-- Security: ensure vulnerable transitive Regex 4.3.0 is upgraded -->
+  <ItemGroup>
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+  </ItemGroup>
 
 </Project>

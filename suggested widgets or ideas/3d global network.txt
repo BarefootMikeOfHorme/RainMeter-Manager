@@ -1,0 +1,23 @@
+[Rainmeter]
+Update=1000
+
+[WebParserMeasures]
+Measure=WebParser
+Url=[MeasureIP]
+RegExp=(?siU)"loc": "(.+?)".+"ip": "(.+?)"
+
+; Background globe image
+[MeterGlobe]
+Meter=Image
+ImageName=#@#images\globe_static.png
+W=300
+H=300
+RotationAngle=[MeasureLuaNetwork:GetGlobeRotation()] ; Rotate the globe
+
+; Animated line representing network connection
+[MeterConnectionLine]
+Meter=Image
+ImageName=#@#images\animated_line.png
+DynamicVariables=1
+X=[MeasureLuaNetwork:GetLineX()]
+Y=[MeasureLuaNetwork:GetLineY()]

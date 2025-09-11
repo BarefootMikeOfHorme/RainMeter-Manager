@@ -189,10 +189,10 @@ public:
     ~CinematicSplashScreen();
     
     // Prevent copy/move
-    SplashScreen(const SplashScreen&) = delete;
-    SplashScreen& operator=(const SplashScreen&) = delete;
-    SplashScreen(SplashScreen&&) = delete;
-    SplashScreen& operator=(SplashScreen&&) = delete;
+    CinematicSplashScreen(const CinematicSplashScreen&) = delete;
+    CinematicSplashScreen& operator=(const CinematicSplashScreen&) = delete;
+    CinematicSplashScreen(CinematicSplashScreen&&) = delete;
+    CinematicSplashScreen& operator=(CinematicSplashScreen&&) = delete;
     
     /**
      * @brief Show the splash screen
@@ -289,26 +289,13 @@ private:
      */
     void OnPaint();
     
-    /**
-     * @brief Draw the logo
-     */
-    void DrawLogo(HDC hdc, const RECT& clientRect);
-    
-    /**
-     * @brief Draw the progress bar
-     */
-    void DrawProgressBar(HDC hdc, const RECT& clientRect);
-    
-    /**
-     * @brief Draw the status text
-     */
-    void DrawStatusText(HDC hdc, const RECT& clientRect);
-    
-    /**
-     * @brief Draw the application title
-     */
-    void DrawTitle(HDC hdc, const RECT& clientRect);
-    
+    // Rendering helpers
+    void RenderWaterBackground();
+    void RenderFloatingLeaves();
+    void RenderWaterDrop();
+    void RenderRipples();
+    void RenderUI();
+
     /**
      * @brief Animation thread function
      */
@@ -342,7 +329,62 @@ private:
     /**
      * @brief Log splash screen events
      */
-    void LogEvent(const std::wstring& event, Core::LogLevel level = Core::LogLevel::Info) const;
+    void LogEvent(const std::wstring& event, ::LogLevel level = ::LogLevel::INFO) const;
+
+    // Initialization helpers
+    void CalculateOptimalSize();
+    bool InitializeAudio();
+    void AudioThreadFunc();
+
+    // Animation helpers
+    void TriggerWaterDrop(float x = -1.0f, float y = -1.0f);
+    void UpdateWaterDrop(float deltaTime);
+    void UpdateRipples(float deltaTime);
+    void UpdateLeaves(float deltaTime);
+    void CreateRipple(float x, float y, float intensity);
+    void InitializeLeaves();
+
+    // Audio synthesis
+    void GenerateWaterSounds(float* buffer, int sampleCount);
+
+    // D2D/DWrite resources
+    ID2D1Factory* d2dFactory_ = nullptr;
+    ID2D1HwndRenderTarget* renderTarget_ = nullptr;
+    IDWriteFactory* writeFactory_ = nullptr;
+    IDWriteTextFormat* titleFormat_ = nullptr;
+    IDWriteTextFormat* statusFormat_ = nullptr;
+    ID2D1SolidColorBrush* waterBrush_ = nullptr;
+    ID2D1SolidColorBrush* rippleBrush_ = nullptr;
+    ID2D1SolidColorBrush* dropBrush_ = nullptr;
+    ID2D1SolidColorBrush* leafBrush_ = nullptr;
+    ID2D1RadialGradientBrush* rippleGradientBrush_ = nullptr;
+
+    // Audio resources
+    IMMDeviceEnumerator* audioEnumerator_ = nullptr;
+    IMMDevice* audioDevice_ = nullptr;
+    IAudioClient* audioClient_ = nullptr;
+    IAudioRenderClient* audioRenderClient_ = nullptr;
+    std::thread audioThread_;
+
+    // Water drop state
+    float dropY_ = 0.0f;
+    float dropVelocity_ = 0.0f;
+    bool dropVisible_ = false;
+    bool dropFalling_ = false;
+
+    // Ripple/leaf animation
+    std::vector<Ripple> ripples_;
+    std::vector<FloatingLeaf> leaves_;
+    int nextRippleIndex_ = 0;
+    std::chrono::steady_clock::time_point dropStartTime_;
+
+    // Audio state
+    bool audioActive_ = false;
+    float currentVolume_ = 0.3f;
+
+    // FPS tracking
+    float frameRate_ = 0.0f;
+    int frameCount_ = 0;
 };
 
 /**
@@ -354,7 +396,7 @@ private:
 class SplashManager {
 private:
     static SplashManager* instance_;
-    std::unique_ptr<SplashScreen> splashScreen_;
+    std::unique_ptr<CinematicSplashScreen> splashScreen_;
     bool isActive_;
 
 public:
@@ -376,7 +418,7 @@ public:
     /**
      * @brief Show splash screen with custom configuration
      */
-    bool ShowSplash(HINSTANCE hInstance, const SplashScreen::Config& config);
+    bool ShowSplash(HINSTANCE hInstance, const CinematicSplashScreen::Config& config);
     
     /**
      * @brief Update splash progress

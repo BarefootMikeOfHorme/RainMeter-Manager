@@ -180,7 +180,8 @@ install(TARGETS ${PROJECT_NAME}
     ARCHIVE DESTINATION lib
 )
 
-install(DIRECTORY ${RESOURCE_FILES} DESTINATION share/${PROJECT_NAME})
+# Install resource tree
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/resources/" DESTINATION share/${PROJECT_NAME})
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt" DESTINATION share/${PROJECT_NAME})
 
 # Tests configuration

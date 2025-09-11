@@ -22,6 +22,7 @@
 #include "version.h"
 #include "ui/splash_screen.h"
 #include "ui/options_window.h"
+#include "../crash/CrashHandler.h"
 
 // Phase 2: Application core layer
 #include "rainmgrapp.h"
@@ -154,6 +155,9 @@ int WINAPI wWinMain(
         //=====================================================================
         // Phase 1: Critical System Initialization
         //=====================================================================
+        
+        // Install crash handler with vectored exceptions (Phase 1)
+        RainmeterManager::Crash::CrashHandler::Install();
         
         // Setup structured exception handling first
         if (!SetupStructuredExceptionHandling()) {
@@ -327,8 +331,8 @@ int WINAPI wWinMain(
         
         LOG_INFO("Initializing UI framework...");
         
-        // Show cinematic splash
-        {
+        // Show cinematic splash (disabled for now)
+        if (false) {
             using RainmeterManager::UI::SplashManager;
             auto& splash = SplashManager::GetInstance();
             splash.ShowSplash(hInstance);
@@ -341,7 +345,7 @@ int WINAPI wWinMain(
         // - Create splash screen
         
         LOG_INFO("UI framework initialization: PLACEHOLDER");
-        {
+        if (false) {
             // Simulate staged progress updates for user feedback
             using RainmeterManager::UI::SplashManager;
             auto& splash = SplashManager::GetInstance();
@@ -382,7 +386,7 @@ int WINAPI wWinMain(
         LOG_INFO("Phase 2: Starting RAINMGRApp main loop...");
         
         // Phase 2: Run the application using RAINMGRApp singleton
-        {
+        if (false) {
             using RainmeterManager::UI::SplashManager;
             auto& splash = SplashManager::GetInstance();
             splash.UpdateProgress(100, L"Starting");
@@ -482,6 +486,9 @@ static bool ValidateCLIOptions(const CLIOptions& opts, std::wstring& error) {
  * Captures crash context, generates minidumps, logs critical errors,
  * and attempts graceful recovery or emergency shutdown.
  */
+// Forward declaration
+static void LogSymbolizedStackTrace(EXCEPTION_POINTERS* exceptionInfo);
+
 LONG WINAPI AppUnhandledExceptionFilter(EXCEPTION_POINTERS* exceptionInfo) {
     // Prevent recursive exception handling
     static bool handlingException = false;
@@ -500,14 +507,37 @@ LONG WINAPI AppUnhandledExceptionFilter(EXCEPTION_POINTERS* exceptionInfo) {
         // Generate crash dump
         GenerateMiniDump(exceptionInfo);
         
-        // Log critical error with context
-        std::string errorMsg = "Unhandled Exception - Code: 0x" + 
-                              std::to_string(exceptionCode) + 
-                              ", Address: 0x" + std::to_string((uintptr_t)exceptionAddress) +
-                              ", Thread: " + std::to_string(threadId) +
-                              ", Process: " + std::to_string(processId);
+        // Log critical error with context (hex formatting + basic symbolization)
+        std::stringstream ss;
+        ss << "Unhandled Exception - Code: 0x" << std::hex << exceptionCode
+           << ", Address: 0x" << (uintptr_t)exceptionAddress
+           << std::dec << ", Thread: " << threadId
+           << ", Process: " << processId;
+
+        // Attempt to resolve symbol for exception address
+        HANDLE hProcess = GetCurrentProcess();
+        SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME);
+        static bool g_symInitialized = false;
+        if (!g_symInitialized) {
+            if (SymInitialize(hProcess, nullptr, TRUE)) {
+                g_symInitialized = true;
+            }
+        }
+        if (g_symInitialized) {
+            DWORD64 addr = reinterpret_cast<DWORD64>(exceptionAddress);
+            BYTE symBuffer[sizeof(SYMBOL_INFO) + 256] = {0};
+            PSYMBOL_INFO pSym = reinterpret_cast<PSYMBOL_INFO>(symBuffer);
+            pSym->SizeOfStruct = sizeof(SYMBOL_INFO);
+            pSym->MaxNameLen = 255;
+            DWORD64 displacement = 0;
+            if (SymFromAddr(hProcess, addr, &displacement, pSym)) {
+                ss << " | Symbol: " << pSym->Name << "+0x" << std::hex << displacement;
+            }
+        }
+        std::string errorMsg = ss.str();
         
         LOG_CRITICAL(errorMsg);
+        LogSymbolizedStackTrace(exceptionInfo);
         
         // Show crash dialog to user
         std::wstring message = L"RainmeterManager has encountered a critical error and needs to close.\n\n" \
@@ -597,6 +627,91 @@ bool SetupStructuredExceptionHandling() {
 /**
  * @brief Generate minidump file for crash analysis
  */
+void LogSymbolizedStackTrace(EXCEPTION_POINTERS* exceptionInfo) {
+    HANDLE hProcess = GetCurrentProcess();
+    HANDLE hThread = GetCurrentThread();
+
+    // Initialize symbols if needed
+    SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME);
+    static bool g_symInitialized = false;
+    if (!g_symInitialized) {
+        if (SymInitialize(hProcess, nullptr, TRUE)) {
+            g_symInitialized = true;
+        }
+    }
+
+    CONTEXT ctx = *exceptionInfo->ContextRecord; // make a copy we can modify
+
+#if defined(_M_X64) || defined(__x86_64__)
+    DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
+    STACKFRAME64 frame = {};
+    frame.AddrPC.Offset    = ctx.Rip;
+    frame.AddrPC.Mode      = AddrModeFlat;
+    frame.AddrFrame.Offset = ctx.Rbp;
+    frame.AddrFrame.Mode   = AddrModeFlat;
+    frame.AddrStack.Offset = ctx.Rsp;
+    frame.AddrStack.Mode   = AddrModeFlat;
+#else
+    DWORD machineType = IMAGE_FILE_MACHINE_I386;
+    STACKFRAME64 frame = {};
+    frame.AddrPC.Offset    = ctx.Eip;
+    frame.AddrPC.Mode      = AddrModeFlat;
+    frame.AddrFrame.Offset = ctx.Ebp;
+    frame.AddrFrame.Mode   = AddrModeFlat;
+    frame.AddrStack.Offset = ctx.Esp;
+    frame.AddrStack.Mode   = AddrModeFlat;
+#endif
+
+    std::stringstream out;
+    out << "Stack trace:" << '\n';
+
+    for (int i = 0; i < 32; ++i) {
+        BOOL ok = StackWalk64(
+            machineType,
+            hProcess,
+            hThread,
+            &frame,
+            &ctx,
+            nullptr,
+            SymFunctionTableAccess64,
+            SymGetModuleBase64,
+            nullptr
+        );
+        if (!ok || frame.AddrPC.Offset == 0) break;
+
+        DWORD64 addr = frame.AddrPC.Offset;
+        BYTE symBuffer[sizeof(SYMBOL_INFO) + 512] = {0};
+        PSYMBOL_INFO pSym = reinterpret_cast<PSYMBOL_INFO>(symBuffer);
+        pSym->SizeOfStruct = sizeof(SYMBOL_INFO);
+        pSym->MaxNameLen = 511;
+        DWORD64 disp = 0;
+        IMAGEHLP_MODULE64 modInfo = {};
+        modInfo.SizeOfStruct = sizeof(modInfo);
+
+        const char* moduleName = "?";
+        if (SymGetModuleInfo64(hProcess, addr, &modInfo)) {
+            moduleName = modInfo.ModuleName;
+        }
+
+        if (SymFromAddr(hProcess, addr, &disp, pSym)) {
+            DWORD dwDisp = 0;
+            IMAGEHLP_LINE64 line = {};
+            line.SizeOfStruct = sizeof(line);
+            if (SymGetLineFromAddr64(hProcess, addr, &dwDisp, &line)) {
+                out << "  [" << i << "] " << moduleName << "!" << pSym->Name << "+0x" << std::hex << disp
+                    << " (" << line.FileName << ":" << std::dec << line.LineNumber << ")" << '\n';
+            } else {
+                out << "  [" << i << "] " << moduleName << "!" << pSym->Name << "+0x" << std::hex << disp
+                    << " [0x" << addr << "]" << '\n';
+            }
+        } else {
+            out << "  [" << i << "] 0x" << std::hex << addr << '\n';
+        }
+    }
+
+    LOG_CRITICAL(out.str());
+}
+
 void GenerateMiniDump(EXCEPTION_POINTERS* exceptionInfo) {
     try {
         // Create dumps directory

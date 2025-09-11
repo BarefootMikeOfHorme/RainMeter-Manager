@@ -39,7 +39,7 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
     
     // Rendering properties
     private RenderProperties _properties;
-    private ContentParameters _contentParameters;
+    private ContentParameters _contentParameters = new ContentParameters();
     private bool _opacityLayerPushed;
     
     // Performance monitoring
@@ -64,7 +64,6 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
     // Animation and timing
     private Timer? _animationTimer;
     private DateTime _lastRenderTime;
-    private float _animationProgress;
     
     // Events
     public event EventHandler<RenderErrorEventArgs>? RenderError;
@@ -183,7 +182,7 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
         }
     }
 
-    public async Task<bool> ResizeAsync(int width, int height)
+    public Task<bool> ResizeAsync(int width, int height)
     {
         try
         {
@@ -202,18 +201,19 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
             }
             
             _logger.LogDebug("SkiaSharp renderer resized successfully");
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to resize SkiaSharp renderer");
             RenderError?.Invoke(this, new RenderErrorEventArgs($"Resize failed: {ex.Message}", ex, BackendType));
-            return false;
+            return Task.FromResult(false);
         }
     }
 
     public async Task CleanupAsync()
     {
+        await Task.CompletedTask;
         try
         {
             _logger.LogInformation("Cleaning up SkiaSharp renderer");
@@ -299,6 +299,7 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
 
     public async Task<bool> ClearContentAsync()
     {
+        await Task.CompletedTask;
         try
         {
             ClearAllCaches();
@@ -351,7 +352,7 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
 
     #region Core Rendering Methods
 
-    private async Task CreateHostForm()
+    private Task CreateHostForm()
     {
         if (Application.OpenForms.Count == 0)
         {
@@ -378,6 +379,7 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
         }
 
         _hostForm.Show();
+        return Task.CompletedTask;
     }
 
     private void InitializeSkiaContext()
@@ -584,17 +586,17 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
 
     #region Content Rendering Methods
 
-    private async Task<bool> LoadStaticContentAsync(string content)
+    private Task<bool> LoadStaticContentAsync(string content)
     {
         try
         {
             _contentCache["static_text"] = content;
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load static content");
-            return false;
+            return Task.FromResult(false);
         }
     }
 
@@ -713,9 +715,9 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
         }
     }
 
-    private async Task RenderWebContent()
+    private Task RenderWebContent()
     {
-        if (_canvas == null || _textPaint == null) return;
+        if (_canvas == null || _textPaint == null) return Task.CompletedTask;
         
         if (_contentCache.TryGetValue("web_content", out var content) && content is string html)
         {
@@ -727,11 +729,12 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
             // Could parse and render simple HTML elements here
             RenderSimpleHTMLContent(html);
         }
+        return Task.CompletedTask;
     }
 
-    private async Task RenderAPIContent()
+    private Task RenderAPIContent()
     {
-        if (_canvas == null || _textPaint == null) return;
+        if (_canvas == null || _textPaint == null) return Task.CompletedTask;
         
         if (_contentCache.TryGetValue("api_data", out var content) && content is string jsonData)
         {
@@ -741,11 +744,12 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
             // Parse and render JSON data
             RenderJSONContent(jsonData);
         }
+        return Task.CompletedTask;
     }
 
-    private async Task RenderMediaContent()
+    private Task RenderMediaContent()
     {
-        if (_canvas == null || _imagePaint == null) return;
+        if (_canvas == null || _imagePaint == null) return Task.CompletedTask;
         
         if (_imageCache.TryGetValue("media_content", out var bitmap))
         {
@@ -762,11 +766,12 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
             
             _canvas.DrawBitmap(bitmap, destRect, _imagePaint);
         }
+        return Task.CompletedTask;
     }
 
-    private async Task RenderFileContent()
+    private Task RenderFileContent()
     {
-        if (_canvas == null) return;
+        if (_canvas == null) return Task.CompletedTask;
         
         // Render image files
         if (_imageCache.TryGetValue("file_image", out var bitmap))
@@ -784,6 +789,7 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
                 _canvas.DrawText(lines[i], 20, 30 + i * 20, _textPaint);
             }
         }
+        return Task.CompletedTask;
     }
 
     private void RenderPlaceholderContent()
@@ -814,7 +820,14 @@ public class SkiaSharpRenderer : IRenderBackend, IDisposable
     private void RenderSimpleHTMLContent(string html)
     {
         // Simplified HTML rendering - extract text content
-        var text = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", string.Empty);
+        var text = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            "<.*?>",
+            string.Empty,
+            System.Text.RegularExpressions.RegexOptions.Singleline
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant
+            | System.Text.RegularExpressions.RegexOptions.NonBacktracking,
+            System.TimeSpan.FromMilliseconds(100));
         if (_canvas != null && _textPaint != null)
         {
             _textPaint.TextSize = 12;

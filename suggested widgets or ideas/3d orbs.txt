@@ -1,0 +1,34 @@
+[Rainmeter]
+Update=16 ; ~60fps
+AccurateText=1
+DynamicWindowSize=1
+
+[Variables]
+OrbGlowColor="50,150,255" ; Default blue
+
+[MeasureMemory]
+Measure=Memory
+
+[MeasureLuaOrb]
+Measure=Script
+ScriptFile=#@#scripts\memory_orb_logic.lua
+UpdateDivider=1
+
+; Core orb with glow based on memory
+[MeterOrb]
+Meter=Image
+ImageName=#@#images\memory_orb.png
+W=150
+H=150
+SolidColor=[MeasureLuaOrb:GetOrbColor()]
+
+; Orbiting process images
+[MeterProcess1]
+Meter=Image
+ImageName=#@#images\process_icon_1.png
+X=[MeasureLuaOrb:GetProcessX(1)]
+Y=[MeasureLuaOrb:GetProcessY(1)]
+W=[MeasureLuaOrb:GetProcessSize(1)]
+H=[MeasureLuaOrb:GetProcessSize(1)]
+ToolTipText="[MeasureLuaOrb:GetProcessName(1)]: [MeasureLuaOrb:GetProcessMem(1)]"
+LeftMouseUpAction=[!Execute [!CommandMeasure "MeasureLuaOrb:KillProcess(1)"]]

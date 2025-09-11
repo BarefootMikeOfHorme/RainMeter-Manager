@@ -1,0 +1,116 @@
+import psutil
+import json
+import time
+import subprocess
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+# --- CONFIGURATION ---
+DATA_FILE = "data.json"
+HOST_NAME = "localhost"
+SERVER_PORT = 8000
+UPDATE_INTERVAL = 1  # in seconds
+
+# --- DATA COLLECTION FUNCTIONS ---
+def get_system_data():
+    """Gathers system-level data (CPU, memory, disk, network)."""
+    data = {
+        "system": {
+            "os_name": os.name,
+            "hostname": os.uname().nodename if os.name == 'posix' else os.environ.get('COMPUTERNAME', 'N/A')
+        },
+        "cpu": {
+            "load_per_core": psutil.cpu_percent(interval=1, percpu=True),
+            "temp": "N/A"  # Requires OS-specific tools or plugins
+        },
+        "memory": {
+            "total": psutil.virtual_memory().total,
+            "available": psutil.virtual_memory().available,
+            "used": psutil.virtual_memory().used,
+        },
+        "network": {
+            "stats": psutil.net_io_counters(pernic=True)
+        },
+        "processes": [p.info for p in psutil.process_iter(['name', 'pid', 'cpu_percent', 'memory_info'])]
+    }
+    return data
+
+def get_security_data():
+    """Gathers security-related data."""
+    data = {
+        "security": {
+            "log_entries": [],  # Monitor relevant logs
+            "network_connections": [] # e.g., using 'netstat' or 'lsof' output
+        }
+    }
+    # Example: Running netstat on Windows
+    if os.name == 'nt':
+        try:
+            netstat_output = subprocess.check_output(['netstat', '-ano'], text=True)
+            # Parse netstat_output to fill data["security"]["network_connections"]
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            pass
+    
+    return data
+
+# --- CONTROL FUNCTIONS ---
+def kill_process_by_pid(pid):
+    """Kills a process by PID."""
+    try:
+        p = psutil.Process(pid)
+        p.kill()
+        return True, f"Process with PID {pid} killed."
+    except psutil.NoSuchProcess:
+        return False, f"No process with PID {pid}."
+
+# --- DATA EXPORT AND SERVER ---
+class RequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/data':
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            with open(DATA_FILE, 'r') as f:
+                self.wfile.write(f.read().encode('utf-8'))
+        elif self.path.startswith('/kill/'):
+            try:
+                pid = int(self.path.split('/')[2])
+                success, message = kill_process_by_pid(pid)
+                self.send_response(200 if success else 404)
+                self.end_headers()
+                self.wfile.write(json.dumps({"message": message}).encode('utf-8'))
+            except (IndexError, ValueError):
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Invalid PID"}).encode('utf-8'))
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+def update_data_periodically():
+    """Thread that periodically updates data.json."""
+    while True:
+        try:
+            data = get_system_data()
+            data.update(get_security_data())
+            with open(DATA_FILE, 'w') as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            print(f"Error updating data: {e}")
+        time.sleep(UPDATE_INTERVAL)
+
+if __name__ == "__main__":
+    # Start data collection thread
+    data_thread = threading.Thread(target=update_data_periodically, daemon=True)
+    data_thread.start()
+
+    # Start HTTP server for widgets to pull data
+    web_server = HTTPServer((HOST_NAME, SERVER_PORT), RequestHandler)
+    print(f"Server started http://{HOST_NAME}:{SERVER_PORT}")
+    try:
+        web_server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    web_server.server_close()
+    print("Server stopped.")

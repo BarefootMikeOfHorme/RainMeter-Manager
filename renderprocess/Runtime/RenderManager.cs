@@ -420,10 +420,11 @@ public async Task<bool> LoadContentAsync(
         {
             switch (command.CommandType)
             {
-                case RenderProcess.Interfaces.RenderCommandType.GetSystemSnapshot:
+case RenderProcess.Interfaces.RenderCommandType.GetSystemSnapshot:
                 {
-                    var metrics = GetSystemPerformanceMetrics();
-                    var json = System.Text.Json.JsonSerializer.Serialize(metrics, new System.Text.Json.JsonSerializerOptions { WriteIndented = false });
+                    // Use PerformanceMonitor live snapshot for dashboard tiles
+                    var snapshot = _performanceMonitor.GetLatest();
+                    var json = System.Text.Json.JsonSerializer.Serialize(snapshot, new System.Text.Json.JsonSerializerOptions { WriteIndented = false });
                     var result = new RenderProcess.Interfaces.RenderResult
                     {
                         CommandId = command.CommandId,
@@ -496,7 +497,7 @@ public async Task<bool> LoadContentAsync(
         }
     }
 
-    private async Task StartBackgroundServices()
+    private Task StartBackgroundServices()
     {
         var cancellationToken = _cancellationTokenSource!.Token;
         
@@ -513,6 +514,7 @@ public async Task<bool> LoadContentAsync(
         _ipcListenerTask = Task.Run(async () => await IPCListenerLoopAsync(cancellationToken), cancellationToken);
         
         _logger.LogDebug("All background services started");
+        return Task.CompletedTask;
     }
 
     private async Task StopBackgroundServices()
@@ -840,13 +842,14 @@ var toRemove = new List<uint>();
         };
     }
 
-    private async Task InitializeSystemCapabilities()
+    private Task InitializeSystemCapabilities()
     {
         _logger.LogInformation("System capabilities detected:");
         _logger.LogInformation($"  SkiaSharp: {_systemCapabilities.SupportsSkiaSharp}");
         _logger.LogInformation($"  Direct3D: {_systemCapabilities.SupportsDirect3D}");
         _logger.LogInformation($"  WebView2: {_systemCapabilities.SupportsWebView2}");
         _logger.LogInformation($"  Hardware Acceleration: {_systemCapabilities.SupportsHardwareAcceleration}");
+        return Task.CompletedTask;
     }
 
     private SystemCapabilities DetectSystemCapabilities()

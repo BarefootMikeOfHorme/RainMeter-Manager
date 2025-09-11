@@ -1,0 +1,46 @@
+import psutil
+import time
+import json
+import sys
+
+# Get network data for a specific interface
+def get_net_data(interface):
+    try:
+        net_io = psutil.net_io_counters(pernic=True)[interface]
+        net_stats = psutil.net_if_stats()[interface]
+        return {
+            "bytes_sent": net_io.bytes_sent,
+            "bytes_recv": net_io.bytes_recv,
+            "packets_sent": net_io.packets_sent,
+            "packets_recv": net_io.packets_recv,
+            "is_up": net_stats.isup,
+            "speed": net_stats.speed,
+            "duplex": net_stats.duplex,
+        }
+    except (KeyError, IndexError):
+        return {"error": "Interface not found"}
+
+# Get local and public IP addresses
+def get_ips():
+    # Placeholder for more complex IP gathering
+    # This could call external services or use more advanced methods
+    local_ip = psutil.net_if_addrs().get('Ethernet', [{'address':'N/A'}])[0].address
+    public_ip = "Fetching..."
+    return {"local_ip": local_ip, "public_ip": public_ip}
+
+# Main function to be called by Rainmeter
+def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "full":
+        interface = "Ethernet" # Or get from command line args
+        data = get_net_data(interface)
+        data.update(get_ips())
+        print(json.dumps(data))
+    else:
+        # Simplified output for Rainmeter
+        interface = "Ethernet"
+        net_io = psutil.net_io_counters(pernic=True)[interface]
+        print(f"B_SENT:{net_io.bytes_sent}")
+        print(f"B_RECV:{net_io.bytes_recv}")
+
+if __name__ == "__main__":
+    main()

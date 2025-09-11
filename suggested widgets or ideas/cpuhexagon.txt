@@ -1,0 +1,50 @@
+[Rainmeter]
+Update=100 ; Fast update for responsive animation
+AccurateText=1
+DynamicWindowSize=1
+
+[Variables]
+HexagonColor="255,255,255" ; Default white color
+
+[MeasureCPU]
+Measure=CPU
+
+[MeasureLua]
+Measure=Script
+ScriptFile=#@#scripts\cpu_hex_logic.lua
+UpdateDivider=1 ; Run on every update
+
+[MeterBackground]
+Meter=Image
+ImageName=#@#images\hexagon_background.png
+W=200
+H=200
+
+[MeterHexGrid]
+Meter=Image
+ImageName=#@#images\hex_grid_frame.png
+W=200
+H=200
+
+; A series of image meters for each core
+; This is a simplified example for one core
+[MeterCore1]
+Meter=Image
+ImageName=#@#images\core_fill.png
+X=...
+Y=...
+W=...
+H=...
+ImageTint=[MeasureLua:GetCoreColor(1)] ; Lua script controls the color
+SolidColor=255,255,255,50
+MouseOverAction=[!ShowMeterGroup MouseOverInfo][!Update]
+MouseLeaveAction=[!HideMeterGroup MouseOverInfo][!Update]
+LeftMouseUpAction=[!Execute [!CommandMeasure "MeasureLua:GetTopProcess(1)"]]
+
+[MeterInfoCore1]
+Meter=String
+MeterStyle=StyleInfo
+Group=MouseOverInfo
+Text="Core 1: [MeasureCPU:Core1]% load"
+Hidden=1
+; ... repeat for other cores ...

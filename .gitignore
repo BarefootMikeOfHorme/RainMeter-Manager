@@ -50,10 +50,13 @@ x86/
 # Windows reserved artifact (if created inadvertently)
 nul
 
+# Track backups and ideas (managed via LFS for large files)
+# /dumps/   (tracked)
+# /suggested widgets or ideas/  (tracked)
+
 # Do not ignore backups or change logs
 !changes/
 !changes/**
 !*.zip
 !*.tar.gz
 !*.tgz
-

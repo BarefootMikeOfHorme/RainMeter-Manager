@@ -27,3 +27,9 @@
 *.tar.gz filter=lfs diff=lfs merge=lfs -text
 *.tgz filter=lfs diff=lfs merge=lfs -text
 
+# Additional LFS tracking for diagnostics and installers
+*.dmp filter=lfs diff=lfs merge=lfs -text
+*.msixbundle filter=lfs diff=lfs merge=lfs -text
+*.msix filter=lfs diff=lfs merge=lfs -text
+*.appx filter=lfs diff=lfs merge=lfs -text
+changes/security_reports/** filter=lfs diff=lfs merge=lfs -text

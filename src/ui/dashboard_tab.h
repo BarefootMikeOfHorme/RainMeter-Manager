@@ -3,9 +3,12 @@
 
 #include <windows.h>
 #include <string>
+#include <memory>
 #include "ui_theme.h"
 
 namespace RainmeterManager {
+// Forward declaration to avoid requiring full IPC header here
+namespace Render { class RenderIPCBridge; }
 namespace UI {
 
 class DashboardTab {
@@ -25,6 +28,16 @@ private:
     void CreateChildren();
     void LayoutChildren();
 
+    // IPC wiring
+    void StartPolling();
+    void StopPolling();
+    void EnsureIPC();
+    void RequestAndUpdateSnapshot();
+    bool ResolveRenderProcess(std::wstring& outPath, std::wstring& outArgs);
+
+    static bool ExtractDouble(const std::string& json, const char* keyPascal, const char* keyCamel, double& outVal);
+    static std::wstring FormatDouble(double v, int decimals = 1);
+
     HINSTANCE hInstance_;
     HWND hParentTab_;
     HWND hwnd_ = nullptr;
@@ -32,6 +45,11 @@ private:
     HWND hTileCpu_ = nullptr;
     HWND hTileMem_ = nullptr;
     HWND hTileNet_ = nullptr;
+
+    // State
+    UINT_PTR timerId_ = 0;
+    std::unique_ptr<RainmeterManager::Render::RenderIPCBridge> ipc_;
+    uint64_t localCommandId_ = 1;
 };
 
 } // namespace UI

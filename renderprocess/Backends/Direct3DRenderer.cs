@@ -42,8 +42,10 @@ public class Direct3DRenderer : IRenderBackend
     public RenderProperties GetProperties() => new RenderProperties();
     public PerformanceMetrics GetPerformanceMetrics() => new PerformanceMetrics();
 
+#pragma warning disable 0067
     public event EventHandler<RenderErrorEventArgs>? RenderError;
     public event EventHandler<FrameRenderedEventArgs>? FrameRendered;
+#pragma warning restore 0067
 
     public void Dispose() { }
 }

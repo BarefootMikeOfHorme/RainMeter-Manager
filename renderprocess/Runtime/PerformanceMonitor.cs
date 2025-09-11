@@ -194,7 +194,7 @@ private System.Threading.Timer? _timer;
         }
     }
 
-    private async Task SampleAsync()
+    private Task SampleAsync()
     {
         var snapshot = new SystemMetrics();
 
@@ -273,6 +273,7 @@ private System.Threading.Timer? _timer;
 
         lock (_lock) _latest = snapshot;
         MetricsUpdated?.Invoke(this, snapshot);
+        return Task.CompletedTask;
     }
 
     #region PInvoke

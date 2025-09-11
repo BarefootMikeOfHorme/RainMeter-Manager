@@ -7,8 +7,25 @@
 #include <shlwapi.h>
 #include <atomic>
 #include <thread>
+#include <cstdio>
 
 #pragma comment(lib, "shlwapi.lib")
+
+// Minimal raw trace to bypass Logger for crash forensics
+static void RawTrace(const char* msg) {
+    HANDLE h = CreateFileA("raw_trace.txt", FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                           OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h != INVALID_HANDLE_VALUE) {
+        DWORD bw = 0;
+        if (msg) {
+            DWORD len = static_cast<DWORD>(strlen(msg));
+            if (len > 0) WriteFile(h, msg, len, &bw, nullptr);
+        }
+        const char* crlf = "\r\n";
+        WriteFile(h, crlf, 2, &bw, nullptr);
+        CloseHandle(h);
+    }
+}
 
 namespace RainmeterManager {
 namespace App {
@@ -28,26 +45,27 @@ RAINMGRApp::RAINMGRApp(HINSTANCE hInstance)
     , messageLoopRunning_(false)
     , mainThreadId_(GetCurrentThreadId())
 {
-    LogApplicationEvent(L"RAINMGRApp instance created");
+    // Constructor: keep minimal to avoid early crashes; logging deferred to Initialize
 }
 
 RAINMGRApp::~RAINMGRApp() {
     if (initialized_) {
         Shutdown();
     }
-    LogApplicationEvent(L"RAINMGRApp instance destroyed");
+    // Destructor: avoid logging during teardown
 }
 
 RAINMGRApp& RAINMGRApp::GetInstance(HINSTANCE hInstance) {
     std::lock_guard<std::mutex> lock(instance_mutex_);
-    
     if (!instance_) {
         if (hInstance == nullptr) {
             throw std::runtime_error("First call to GetInstance requires valid HINSTANCE");
         }
+        LOG_INFO("RAINMGRApp::GetInstance - constructing instance");
         instance_ = std::unique_ptr<RAINMGRApp>(new RAINMGRApp(hInstance));
+        LOG_INFO("RAINMGRApp::GetInstance - instance constructed");
     }
-    
+    LOG_INFO("RAINMGRApp::GetInstance - returning instance");
     return *instance_;
 }
 
@@ -58,86 +76,107 @@ void RAINMGRApp::DestroyInstance() {
 
 bool RAINMGRApp::Initialize() {
     try {
-        LogApplicationEvent(L"Starting application initialization...");
+        LOG_INFO("RAINMGRApp::Initialize - entry");
+        LOG_INFO("RAINMGRApp::Initialize - starting...");
         
         // Initialize paths first
+        LOG_INFO("RAINMGRApp::Initialize - before InitializePaths");
         if (!InitializePaths()) {
             HandleFatalError(L"Failed to initialize application paths");
             return false;
         }
+        LOG_INFO("RAINMGRApp::Initialize - after InitializePaths");
         
         // Initialize logging system
+        LOG_INFO("RAINMGRApp::Initialize - before InitializeLogging");
         if (!InitializeLogging()) {
             HandleFatalError(L"Failed to initialize logging system");
             return false;
         }
+        LOG_INFO("RAINMGRApp::Initialize - after InitializeLogging");
         
         // Initialize security framework
+        RawTrace("Init: before InitializeSecurity");
+        LOG_INFO("RAINMGRApp::Initialize - before InitializeSecurity");
         if (!InitializeSecurity()) {
             HandleFatalError(L"Failed to initialize security framework");
             return false;
         }
+        LOG_INFO("RAINMGRApp::Initialize - after InitializeSecurity");
+        RawTrace("Init: after InitializeSecurity");
         
         // Create service locator
+        LOG_INFO("RAINMGRApp::Initialize - before ServiceLocator creation");
         serviceLocator_ = std::make_unique<Core::ServiceLocator>();
+        LOG_INFO("RAINMGRApp::Initialize - after ServiceLocator creation");
         
         // Initialize core services
+        LOG_INFO("RAINMGRApp::Initialize - before InitializeServices");
         if (!InitializeServices()) {
             HandleFatalError(L"Failed to initialize core services");
             return false;
         }
+        LOG_INFO("RAINMGRApp::Initialize - after InitializeServices");
         
         // Create main window (hidden); we'll show it after splash completes
+        LOG_INFO("RAINMGRApp::Initialize - before CreateMainWindow");
         if (!CreateMainWindow()) {
             HandleFatalError(L"Failed to create main application window");
             return false;
         }
+        LOG_INFO("RAINMGRApp::Initialize - after CreateMainWindow");
 
-        // Display cinematic splash while completing background initialization
-        UI::CinematicSplashScreen::Config splashCfg;
-        splashCfg.enableSound = false;
-        UI::CinematicSplashScreen splash(hInstance_, splashCfg);
-        splash.Show();
-
-        // Note splash start time to ensure minimum cinematic duration
-        auto splashStart = std::chrono::steady_clock::now();
-
-        // Simulate staged initialization with progress updates
-        auto stage = [&](int pct, const wchar_t* msg){ splash.UpdateProgress(pct, msg); };
-        stage(10, L"Initializing services");
-        // Place for provider autodetect and light tasks
-        std::this_thread::sleep_for(std::chrono::milliseconds(150));
-        stage(40, L"Preparing dashboard");
-        std::this_thread::sleep_for(std::chrono::milliseconds(150));
-        stage(70, L"Loading widgets");
-        std::this_thread::sleep_for(std::chrono::milliseconds(150));
-        stage(100, L"Starting");
-
-        // Ensure splash displays for ~6-8 seconds minimum and extend up to 12 seconds if still loading
-        constexpr long kMinMs = 6000;
-        constexpr long kPrefMaxMs = 8000;
-        constexpr long kHardMaxMs = 12000;
-        long targetMs = splashCfg.displayTimeMs;
-        if (targetMs < kMinMs) targetMs = kMinMs; else if (targetMs > kPrefMaxMs) targetMs = kPrefMaxMs;
-
-        // A flag that represents critical init phases finished (simulate now; wire real checks later)
-        bool criticalInitDone = true; // set to true after required init steps complete
-
-        while (true) {
-            auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                  std::chrono::steady_clock::now() - splashStart)
-                                  .count();
-            if (elapsedMs >= targetMs && (criticalInitDone || elapsedMs >= kHardMaxMs)) break;
-            // Pump messages so splash remains responsive during wait
-            MSG m{};
-            while (PeekMessage(&m, nullptr, 0, 0, PM_REMOVE)) {
-                TranslateMessage(&m);
-                DispatchMessage(&m);
+        // Display cinematic splash while completing background initialization (temporarily disabled for stability)
+        bool useCinematicSplash = false;
+        if (useCinematicSplash) {
+            UI::CinematicSplashScreen::Config splashCfg;
+            splashCfg.enableSound = false;
+            bool splashShown = false;
+            std::unique_ptr<UI::CinematicSplashScreen> splash;
+            try {
+                splash = std::make_unique<UI::CinematicSplashScreen>(hInstance_, splashCfg);
+                splashShown = splash->Show();
+            } catch (...) {
+                splashShown = false;
+                splash.reset();
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
 
-        splash.Hide();
+            auto splashStart = std::chrono::steady_clock::now();
+            auto stage = [&](int pct, const wchar_t* msg){ if (splashShown && splash) splash->UpdateProgress(pct, msg); };
+            stage(10, L"Initializing services");
+            std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            stage(40, L"Preparing dashboard");
+            std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            stage(70, L"Loading widgets");
+            std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            stage(100, L"Starting");
+
+            constexpr long kMinMs = 6000;
+            constexpr long kPrefMaxMs = 8000;
+            constexpr long kHardMaxMs = 12000;
+            long targetMs = splashCfg.displayTimeMs;
+            if (targetMs < kMinMs) targetMs = kMinMs; else if (targetMs > kPrefMaxMs) targetMs = kPrefMaxMs;
+
+            bool criticalInitDone = true;
+            while (true) {
+                auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                      std::chrono::steady_clock::now() - splashStart)
+                                      .count();
+                if (elapsedMs >= targetMs && (criticalInitDone || elapsedMs >= kHardMaxMs)) break;
+                MSG m{};
+                while (PeekMessage(&m, nullptr, 0, 0, PM_REMOVE)) { TranslateMessage(&m); DispatchMessage(&m); }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+            if (splashShown && splash) splash->Hide();
+        } else {
+            // Minimal staged initialization without splash
+            LogApplicationEvent(L"Initializing services (no splash)");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            LogApplicationEvent(L"Preparing dashboard (no splash)");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            LogApplicationEvent(L"Loading widgets (no splash)");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
 
         // Show main window now that splash has finished
         ShowMainWindow();
@@ -283,18 +322,21 @@ void RAINMGRApp::UnregisterAllShutdownHandlers() {
 
 bool RAINMGRApp::InitializePaths() {
     try {
+        LOG_INFO("InitializePaths: start");
         // Get application executable path
-        wchar_t exePath[MAX_PATH];
+        wchar_t exePath[MAX_PATH] = {0};
         if (GetModuleFileName(hInstance_, exePath, MAX_PATH) == 0) {
             LogApplicationEvent(L"Failed to get module file name", Core::LogLevel::Error);
             return false;
         }
+        LOG_INFO("InitializePaths: got module file name");
         
         // Extract directory path
         wchar_t* lastSlash = wcsrchr(exePath, L'\\');
         if (lastSlash) {
             *lastSlash = L'\0';
         }
+        LOG_INFO("InitializePaths: extracted directory");
         
         applicationPath_ = exePath;
         
@@ -307,9 +349,9 @@ bool RAINMGRApp::InitializePaths() {
         if (ec) {
             LogApplicationEvent(L"Failed to create config directory: " + configPath_, Core::LogLevel::Warning);
         }
+        LOG_INFO("InitializePaths: directories ensured");
         
-        LogApplicationEvent(L"Application path: " + applicationPath_);
-        LogApplicationEvent(L"Configuration path: " + configPath_);
+        LOG_INFO("InitializePaths: path variables set");
         
         return true;
     } catch (const std::exception& e) {
@@ -323,48 +365,40 @@ bool RAINMGRApp::InitializePaths() {
 
 bool RAINMGRApp::InitializeServices() {
     try {
-        LogApplicationEvent(L"Initializing core services...");
+        RawTrace("InitServices: entered");
         
         // Register core services with the service locator
         // Note: In a real implementation, you would register concrete service implementations here
         
-        LogApplicationEvent(L"Core services initialized successfully");
+        RawTrace("InitServices: returning true");
         return true;
     } catch (const std::exception& e) {
-        std::string errorMsg = "Exception in InitializeServices: ";
-        errorMsg += e.what();
-        std::wstring wideError(errorMsg.begin(), errorMsg.end());
-        LogApplicationEvent(wideError, Core::LogLevel::Error);
+        RawTrace("InitServices: caught std::exception");
+        return false;
+    } catch (...) {
+        RawTrace("InitServices: caught unknown exception");
         return false;
     }
 }
 
 bool RAINMGRApp::InitializeLogging() {
-    try {
-        // Logger is already initialized as singleton, just ensure it's working
-        LogApplicationEvent(L"Logging system verified");
-        return true;
-    } catch (const std::exception& e) {
-        // This is tricky since logging might not be working
-        return false;
-    }
+    // Logger already initialized in main; skip verification to avoid re-entrancy during bootstrap
+    return true;
 }
 
 bool RAINMGRApp::InitializeSecurity() {
     try {
-        // Initialize security framework
-        if (!Core::Security::Initialize()) {
-            LogApplicationEvent(L"Security framework initialization failed", Core::LogLevel::Error);
-            return false;
-        }
-        
-        LogApplicationEvent(L"Security framework initialized successfully");
+        RawTrace("InitSecurity: entered");
+        // Avoid duplicate initialization: main.cpp performs initial Security::Initialize()
+        // Skipping re-initialization here to isolate startup access violation
+        // Note: intentionally bypassing Logger here to test for logging-related AV
+        RawTrace("InitSecurity: skipping reinit, returning true");
         return true;
     } catch (const std::exception& e) {
-        std::string errorMsg = "Exception in InitializeSecurity: ";
-        errorMsg += e.what();
-        std::wstring wideError(errorMsg.begin(), errorMsg.end());
-        LogApplicationEvent(wideError, Core::LogLevel::Error);
+        RawTrace("InitSecurity: caught std::exception");
+        return false;
+    } catch (...) {
+        RawTrace("InitSecurity: caught unknown exception");
         return false;
     }
 }
@@ -372,54 +406,54 @@ bool RAINMGRApp::InitializeSecurity() {
 bool RAINMGRApp::CreateMainWindow() {
     try {
         // Register window class
-        WNDCLASSEX wc = {};
-        wc.cbSize = sizeof(WNDCLASSEX);
-        wc.style = CS_HREDRAW | CS_VREDRAW;
+        RawTrace("CreateMainWindow: registering class");
+        WNDCLASSEXW wc = {};
+        wc.cbSize = sizeof(WNDCLASSEXW);
+        wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
         wc.lpfnWndProc = MainWindowProc;
+        wc.cbClsExtra = 0;
+        wc.cbWndExtra = sizeof(LONG_PTR); // Store 'this' pointer
         wc.hInstance = hInstance_;
-        wc.hIcon = LoadIcon(hInstance_, MAKEINTRESOURCE(101));  // Assuming icon resource ID 101
-        wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-        wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+        // Load application icons with safe fallbacks
+        HICON hIconLarge = (HICON)LoadImageW(hInstance_, L"IDI_ICON1", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
+        if (!hIconLarge) hIconLarge = LoadIconW(hInstance_, MAKEINTRESOURCEW(101));
+        if (!hIconLarge) hIconLarge = LoadIconW(nullptr, IDI_APPLICATION);
+        wc.hIcon = hIconLarge;
+
+        wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+        wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
         wc.lpszClassName = MAIN_WINDOW_CLASS;
-        wc.hIconSm = LoadIcon(hInstance_, MAKEINTRESOURCE(101));
+
+        HICON hIconSmall = (HICON)LoadImageW(hInstance_, L"IDI_ICON1", IMAGE_ICON, 16, 16, 0);
+        if (!hIconSmall) hIconSmall = LoadIconW(hInstance_, MAKEINTRESOURCEW(101));
+        if (!hIconSmall) hIconSmall = LoadIconW(nullptr, IDI_APPLICATION);
+        wc.hIconSm = hIconSmall;
         
-        if (!RegisterClassEx(&wc)) {
+        ATOM cls = RegisterClassExW(&wc);
+        if (!cls) {
             DWORD error = GetLastError();
             if (error != ERROR_CLASS_ALREADY_EXISTS) {
                 LogApplicationEvent(L"Failed to register window class, error: " + std::to_wstring(error), Core::LogLevel::Error);
+                RawTrace("CreateMainWindow: RegisterClassEx failed");
                 return false;
             }
         }
         
         // Create main window (hidden initially)
-        mainWindow_ = CreateWindowEx(
+        RawTrace("CreateMainWindow: calling CreateWindowExW");
+        mainWindow_ = CreateWindowExW(
             0,                              // Extended styles
             MAIN_WINDOW_CLASS,              // Class name
             L"Rainmeter Manager",           // Window title
             WS_OVERLAPPEDWINDOW,            // Window style
             CW_USEDEFAULT, CW_USEDEFAULT,   // Position
-            800, 600,                       // Size
+            1280, 800,                      // Size
             nullptr,                        // Parent
             nullptr,                        // Menu
             hInstance_,                     // Instance
-            this                           // User data (this pointer)
+            this                            // User data (this pointer)
         );
-        
-        if (!mainWindow_) {
-            DWORD error = GetLastError();
-            LogApplicationEvent(L"Failed to create main window, error: " + std::to_wstring(error), Core::LogLevel::Error);
-            return false;
-        }
-        
-        // Do not show window yet; splash should be the only thing visible
-        LogApplicationEvent(L"Main window created successfully (hidden)");
-        return true;
-    } catch (const std::exception& e) {
-        std::string errorMsg = "Exception in CreateMainWindow: ";
-        errorMsg += e.what();
-        std::wstring wideError(errorMsg.begin(), errorMsg.end());
-        LogApplicationEvent(wideError, Core::LogLevel::Error);
-        return false;
+        RawTrace("CreateMainWindow: CreateWindowExW returned");
     }
 }
 
@@ -480,27 +514,47 @@ void RAINMGRApp::CleanupServices() {
 }
 
 LRESULT CALLBACK RAINMGRApp::MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    char buf[64];
+    sprintf_s(buf, "WndProc: msg=0x%04X", (unsigned int)msg);
+    RawTrace(buf);
     RAINMGRApp* app = nullptr;
     
     if (msg == WM_NCCREATE) {
-        // Get the this pointer from CREATESTRUCT
-        CREATESTRUCT* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
-        app = reinterpret_cast<RAINMGRApp*>(cs->lpCreateParams);
-        SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(app));
+        // Get the this pointer from CREATESTRUCTW at earliest opportunity
+        CREATESTRUCTW* cs = reinterpret_cast<CREATESTRUCTW*>(lParam);
+        if (cs && cs->lpCreateParams) {
+            app = reinterpret_cast<RAINMGRApp*>(cs->lpCreateParams);
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(app));
+        }
+        return TRUE; // Continue window creation
     } else {
         // Get the this pointer from window user data
-        app = reinterpret_cast<RAINMGRApp*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        app = reinterpret_cast<RAINMGRApp*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
     }
     
     if (app) {
         return app->HandleWindowMessage(hwnd, msg, wParam, lParam);
     }
     
-    return DefWindowProc(hwnd, msg, wParam, lParam);
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
 LRESULT RAINMGRApp::HandleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
+        case WM_CREATE: {
+            // Post deferred init message to ensure HWND fully valid
+            PostMessageW(hwnd, WM_APP + 1, 0, 0);
+            return 0;
+        }
+        
+        case WM_APP + 1: {
+            // Deferred initialization after window creation is complete
+            if (IsWindow(hwnd)) {
+                StartDeferredInitialization(hwnd);
+            }
+            return 0;
+        }
+        
         case WM_CLOSE:
             LogApplicationEvent(L"WM_CLOSE received");
             RequestShutdown();
@@ -541,7 +595,39 @@ LRESULT RAINMGRApp::HandleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPAR
             break;
     }
     
-    return DefWindowProc(hwnd, msg, wParam, lParam);
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+void RAINMGRApp::StartDeferredInitialization(HWND hwnd) {
+    if (!IsWindow(hwnd)) {
+        LogApplicationEvent(L"StartDeferredInitialization: Invalid window handle", Core::LogLevel::Error);
+        return;
+    }
+    
+    LogApplicationEvent(L"Starting deferred initialization...");
+    
+    try {
+        // Initialize IPC Manager AFTER window is fully created to avoid AVs
+        // TODO: Uncomment when IPCManager is implemented
+        // IPCManager::Instance().Initialize();
+        
+        // Launch RenderProcess with validated args
+        // TODO: Uncomment when RenderProcess launcher is implemented
+        // LaunchRenderProcess();
+        
+        // Trigger first paint
+        InvalidateRect(hwnd, nullptr, TRUE);
+        
+        LogApplicationEvent(L"Deferred initialization completed");
+        
+    } catch (const std::exception& e) {
+        std::string errorMsg = "Exception in deferred initialization: ";
+        errorMsg += e.what();
+        std::wstring wideError(errorMsg.begin(), errorMsg.end());
+        LogApplicationEvent(wideError, Core::LogLevel::Error);
+    } catch (...) {
+        LogApplicationEvent(L"Unknown exception in deferred initialization", Core::LogLevel::Error);
+    }
 }
 
 void RAINMGRApp::HandleFatalError(const std::wstring& error) {
@@ -557,23 +643,26 @@ void RAINMGRApp::HandleFatalError(const std::wstring& error) {
 }
 
 void RAINMGRApp::LogApplicationEvent(const std::wstring& event, Core::LogLevel level) {
-    try {
-        auto& logger = Core::Logger::GetInstance();
-        switch (level) {
-            case Core::LogLevel::Error:
-                logger.LogError(L"RAINMGRApp: " + event);
-                break;
-            case Core::LogLevel::Warning:
-                logger.LogWarning(L"RAINMGRApp: " + event);
-                break;
-            case Core::LogLevel::Info:
-            default:
-                logger.LogInfo(L"RAINMGRApp: " + event);
-                break;
-        }
-    } catch (...) {
-        // If logging fails, there's not much we can do
-        // In a production system, you might write to Windows Event Log as fallback
+    auto toUtf8 = [](const std::wstring& w) -> std::string {
+        if (w.empty()) return std::string();
+        int sz = ::WideCharToMultiByte(CP_UTF8, 0, w.c_str(), (int)w.size(), nullptr, 0, nullptr, nullptr);
+        if (sz <= 0) return std::string();
+        std::string out((size_t)sz, '\0');
+        ::WideCharToMultiByte(CP_UTF8, 0, w.c_str(), (int)w.size(), out.data(), sz, nullptr, nullptr);
+        return out;
+    };
+    std::string msg = std::string("RAINMGRApp: ") + toUtf8(event);
+    switch (level) {
+        case Core::LogLevel::Error:
+            ::Logger::error(msg);
+            break;
+        case Core::LogLevel::Warning:
+            ::Logger::warning(msg);
+            break;
+        case Core::LogLevel::Info:
+        default:
+            ::Logger::info(msg);
+            break;
     }
 }
 

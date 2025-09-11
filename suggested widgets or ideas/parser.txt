@@ -1,0 +1,35 @@
+[Rainmeter]
+Update=1000
+
+; --- MEASURES ---
+[MeasureData]
+Measure=WebParser
+URL=http://localhost:8000/data
+DownloadFile=#@#Resources\data.json ; Cache the data locally
+UpdateRate=1
+
+[MeasureCPUCore1]
+Measure=String
+String=[MeasureData]
+StringIndex=1
+RegExp=(?siU)^.*?"load_per_core": \[(\d+\.?\d*).*?].*?$
+
+[MeasureProcessName]
+Measure=String
+String=[MeasureData]
+StringIndex=1
+RegExp=(?siU)^.*?"name": "(.+?)".*?$
+
+; --- METERS (Widget Visuals) ---
+; A meter to display the CPU core load from the WebParser measure
+[MeterCPUCore1]
+Meter=String
+MeasureName=MeasureCPUCore1
+Text="Core 1: %1%"
+...
+
+; A button to kill a process
+[MeterKillProcessButton]
+Meter=String
+Text="Kill PID 1234"
+LeftMouseUpAction=!Execute ["http://localhost:8000/kill/1234"]

@@ -39,7 +39,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
     
     // Rendering properties and content
     private RenderProperties _properties;
-    private ContentParameters _contentParameters;
+    private ContentParameters _contentParameters = new ContentParameters();
     private PerformanceMetrics _metrics;
     private long _frameCount;
     private DateTime _lastRenderTime;
@@ -151,11 +151,11 @@ public class WebViewRenderer : IRenderBackend, IDisposable
         }
     }
 
-    public async Task<bool> RenderFrameAsync()
+    public Task<bool> RenderFrameAsync()
     {
         if (!_isInitialized || _webView?.CoreWebView2 == null)
         {
-            return false;
+            return Task.FromResult(false);
         }
 
         try
@@ -173,17 +173,17 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             // Trigger frame rendered event
             FrameRendered?.Invoke(this, new FrameRenderedEventArgs(_frameCount, _performanceTimer.Elapsed.TotalMilliseconds));
             
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during WebView2 rendering");
             RenderError?.Invoke(this, new RenderErrorEventArgs($"Render failed: {ex.Message}", ex, BackendType));
-            return false;
+            return Task.FromResult(false);
         }
     }
 
-    public async Task<bool> ResizeAsync(int width, int height)
+    public Task<bool> ResizeAsync(int width, int height)
     {
         try
         {
@@ -202,17 +202,18 @@ public class WebViewRenderer : IRenderBackend, IDisposable
                 _webView.Size = new Size(width, height);
             }
             
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to resize WebView2 renderer");
-            return false;
+            return Task.FromResult(false);
         }
     }
 
     public async Task CleanupAsync()
     {
+        await Task.CompletedTask;
         try
         {
             _logger.LogInformation("Cleaning up WebView2 renderer");
@@ -300,6 +301,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
 
     public async Task<bool> ClearContentAsync()
     {
+        await Task.CompletedTask;
         try
         {
             if (_webView?.CoreWebView2 != null)
@@ -371,7 +373,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
 
     #region Core Implementation Methods
 
-    private async Task CreateHostForm()
+    private Task CreateHostForm()
     {
         if (Application.OpenForms.Count == 0)
         {
@@ -398,6 +400,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
 
         _hostForm.Show();
         _logger.LogDebug("WebView host form created");
+        return Task.CompletedTask;
     }
 
     private async Task InitializeWebView()
@@ -435,9 +438,9 @@ public class WebViewRenderer : IRenderBackend, IDisposable
         }
     }
 
-    private async Task ConfigureEnterpriseSecurity()
+    private Task ConfigureEnterpriseSecurity()
     {
-        if (_webView?.CoreWebView2 == null) return;
+        if (_webView?.CoreWebView2 == null) return Task.CompletedTask;
 
         try
         {
@@ -473,11 +476,12 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             _logger.LogError(ex, "Failed to configure enterprise security");
             throw;
         }
+        return Task.CompletedTask;
     }
 
-    private async Task LoadWebContent(string url)
+    private Task LoadWebContent(string url)
     {
-        if (_webView?.CoreWebView2 == null) return;
+        if (_webView?.CoreWebView2 == null) return Task.CompletedTask;
         
         try
         {
@@ -500,11 +504,12 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             _logger.LogError(ex, $"Failed to navigate to URL: {url}");
             throw;
         }
+        return Task.CompletedTask;
     }
 
-    private async Task LoadStaticContent(string html)
+    private Task LoadStaticContent(string html)
     {
-        if (_webView == null) return;
+        if (_webView == null) return Task.CompletedTask;
         
         try
         {
@@ -541,6 +546,7 @@ public class WebViewRenderer : IRenderBackend, IDisposable
             _logger.LogError(ex, "Failed to load static content");
             throw;
         }
+        return Task.CompletedTask;
     }
 
     private async Task LoadAPIContent(string endpoint)
