@@ -1,0 +1,43 @@
+Init: before InitializeSecurity
+InitSecurity: entered
+Init: before InitializeSecurity
+InitSecurity: entered
+InitSecurity: skipping reinit, returning true
+Init: after InitializeSecurity
+Init: before InitializeSecurity
+InitSecurity: entered
+InitSecurity: skipping reinit, returning true
+Init: after InitializeSecurity
+InitServices: entered
+InitServices: returning true
+Init: before InitializeSecurity
+InitSecurity: entered
+InitSecurity: skipping reinit, returning true
+Init: after InitializeSecurity
+InitServices: entered
+InitServices: returning true
+CreateMainWindow: registering class
+CreateMainWindow: calling CreateWindowEx
+WndProc: msg=0x0024
+WndProc: msg=0x0081
+WndProc: msg=0x0083
+WndProc: msg=0x0001
+CreateMainWindow: CreateWindowEx returned
+WndProc: msg=0x001C
+WndProc: msg=0x031F
+Init: before InitializeSecurity
+InitSecurity: entered
+InitSecurity: skipping reinit, returning true
+Init: after InitializeSecurity
+InitServices: entered
+InitServices: returning true
+CreateMainWindow: registering class
+CreateMainWindow: calling CreateWindowEx
+WndProc: msg=0x0024
+WndProc: msg=0x0081
+WndProc: msg=0x0083
+WndProc: msg=0x0001
+CreateMainWindow: CreateWindowEx returned
+Main window created successfully (hidden)
+WndProc: msg=0x001C
+WndProc: msg=0x031F

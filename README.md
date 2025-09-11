@@ -5,6 +5,19 @@
 > - PR: https://github.com/BarefootMikeOfHorme/RainMeter-Manager/pull/1
 > - Changelog: changes/2025-09-10_Build-and-IPC-Prep/CHANGELOG.md
 
+## Status — 2025-09-11
+
+- Branch: `v1.0.0.0-build` (ahead of `origin`)
+- Build: Debug x64 builds successfully (manifest warnings are expected due to explicit `/MANIFEST:NO`).
+- Security scans: Reports are in `changes/security_reports/security-toolkit/` (gitleaks, trufflehog, cppcheck).
+- Known issue: Startup access violation (0xC0000005) shortly after `CreateMainWindow` returns.
+  - See `logs/RainmeterManager.log`, `raw_trace.txt`, and minidumps in `dumps/`.
+  - Temporary boot tracing (`RawTrace`) added in `src/app/rainmgrapp.cpp` to isolate crash—no features removed or disabled.
+- Next steps (post-push):
+  - Correct icon resource load in window class (use `IDI_ICON1` from `resources/resource.rc`) with safe fallbacks.
+  - Improve crash log formatting (hex) and add basic symbolization for exception addresses.
+  - Optionally enable AddressSanitizer for Debug x64 to pinpoint any prior memory corruption.
+
 An enterprise-grade management application for Rainmeter skins and widgets with advanced security features.
 
 ## Architecture

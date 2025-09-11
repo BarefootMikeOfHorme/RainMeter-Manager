@@ -1,0 +1,549 @@
+/scan/src/app/main.cpp:0:0: warning: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/scan/src/core/logger.cpp:86:27: warning: Condition 'messageBuffer' is always false [knownConditionTrueFalse]
+    std::string message = messageBuffer ? messageBuffer : "Unknown error";
+                          ^
+/scan/src/core/logger.cpp:80:27: note: Assignment 'messageBuffer=nullptr', assigned value is 0
+    char* messageBuffer = nullptr;
+                          ^
+/scan/src/core/logger.cpp:86:27: note: Condition 'messageBuffer' is always false
+    std::string message = messageBuffer ? messageBuffer : "Unknown error";
+                          ^
+/scan/src/core/logger.cpp:161:12: warning: Uninitialized variables: lastResult.success, lastResult.errorCode [uninitvar]
+    return lastResult;
+           ^
+/scan/src/core/logger.cpp:143:35: note: Assuming condition is false
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+                                  ^
+/scan/src/core/logger.cpp:161:12: note: Uninitialized variables: lastResult.success, lastResult.errorCode
+    return lastResult;
+           ^
+/scan/src/core/logger.cpp:81:17: warning: Variable 'size' is assigned a value that is never used. [unreadVariable]
+    size_t size = FormatMessageA(
+                ^
+/scan/src/core/logger.cpp:81:12: warning: Variable 'size' is assigned a value that is never used. [unreadVariable]
+    size_t size = FormatMessageA(
+           ^
+/scan/src/config/config_manager.cpp:398:21: warning: Technically the member function 'RainmeterManager::Config::ConfigManager::FileExists' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool ConfigManager::FileExists(const std::string& filepath) const {
+                    ^
+/scan/src/config/config_manager.h:266:10: note: Technically the member function 'RainmeterManager::Config::ConfigManager::FileExists' can be static (but you may consider moving to unnamed namespace).
+    bool FileExists(const std::string& filepath) const;
+         ^
+/scan/src/config/config_manager.cpp:398:21: note: Technically the member function 'RainmeterManager::Config::ConfigManager::FileExists' can be static (but you may consider moving to unnamed namespace).
+bool ConfigManager::FileExists(const std::string& filepath) const {
+                    ^
+/scan/src/config/config_manager.cpp:464:21: warning: Technically the member function 'RainmeterManager::Config::ConfigManager::MatchesPattern' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool ConfigManager::MatchesPattern(const std::string& key, const std::string& pattern) const {
+                    ^
+/scan/src/config/config_manager.h:276:10: note: Technically the member function 'RainmeterManager::Config::ConfigManager::MatchesPattern' can be static (but you may consider moving to unnamed namespace).
+    bool MatchesPattern(const std::string& key, const std::string& pattern) const;
+         ^
+/scan/src/config/config_manager.cpp:464:21: note: Technically the member function 'RainmeterManager::Config::ConfigManager::MatchesPattern' can be static (but you may consider moving to unnamed namespace).
+bool ConfigManager::MatchesPattern(const std::string& key, const std::string& pattern) const {
+                    ^
+/scan/src/config/config_manager.cpp:491:21: warning: Technically the member function 'RainmeterManager::Config::ConfigManager::LogConfigEvent' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+void ConfigManager::LogConfigEvent(const std::string& message, Core::LogLevel level) const {
+                    ^
+/scan/src/config/config_manager.h:282:10: note: Technically the member function 'RainmeterManager::Config::ConfigManager::LogConfigEvent' can be static (but you may consider moving to unnamed namespace).
+    void LogConfigEvent(const std::string& message, Core::LogLevel level = Core::LogLevel::Info) const;
+         ^
+/scan/src/config/config_manager.cpp:491:21: note: Technically the member function 'RainmeterManager::Config::ConfigManager::LogConfigEvent' can be static (but you may consider moving to unnamed namespace).
+void ConfigManager::LogConfigEvent(const std::string& message, Core::LogLevel level) const {
+                    ^
+/scan/src/config/config_manager.h:57:9: warning: Struct 'ConfigValue' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+        ConfigValue(const std::string& v = "", ValueType t = ValueType::String,
+        ^
+/scan/src/ui/splash_screen.h:444:5: warning: Member variable 'SplashManager::isActive_' is not initialized in the constructor. [uninitMemberVarPrivate]
+    SplashManager() = default;
+    ^
+/scan/src/core/service_locator.h:302:10: warning: Technically the member function 'RainmeterManager::Core::ServiceLocator::LogServiceRegistration' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void LogServiceRegistration(const std::string& type, const std::string& name) {
+         ^
+/scan/src/core/service_locator.h:315:10: warning: Technically the member function 'RainmeterManager::Core::ServiceLocator::LogServiceUnregistration' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void LogServiceUnregistration() {
+         ^
+/scan/src/app/rainmgrapp.cpp:206:18: warning: Technically the member function 'RainmeterManager::App::RAINMGRApp::ProcessMessages' can be const. [functionConst]
+bool RAINMGRApp::ProcessMessages() {
+                 ^
+/scan/src/app/rainmgrapp.h:71:10: note: Technically the member function 'RainmeterManager::App::RAINMGRApp::ProcessMessages' can be const.
+    bool ProcessMessages();
+         ^
+/scan/src/app/rainmgrapp.cpp:206:18: note: Technically the member function 'RainmeterManager::App::RAINMGRApp::ProcessMessages' can be const.
+bool RAINMGRApp::ProcessMessages() {
+                 ^
+/scan/src/app/rainmgrapp.cpp:559:18: warning: Technically the member function 'RainmeterManager::App::RAINMGRApp::LogApplicationEvent' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+void RAINMGRApp::LogApplicationEvent(const std::wstring& event, Core::LogLevel level) {
+                 ^
+/scan/src/app/rainmgrapp.h:112:10: note: Technically the member function 'RainmeterManager::App::RAINMGRApp::LogApplicationEvent' can be static (but you may consider moving to unnamed namespace).
+    void LogApplicationEvent(const std::wstring& event, Core::LogLevel level = Core::LogLevel::Info);
+         ^
+/scan/src/app/rainmgrapp.cpp:559:18: note: Technically the member function 'RainmeterManager::App::RAINMGRApp::LogApplicationEvent' can be static (but you may consider moving to unnamed namespace).
+void RAINMGRApp::LogApplicationEvent(const std::wstring& event, Core::LogLevel level) {
+                 ^
+/scan/src/ui/ui_framework.h:48:5: warning: Class 'ModernButton' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    ModernButton(const std::string& text, std::function<void()> onClick = nullptr);
+    ^
+/scan/src/app/rainmgrapp.cpp:130:43: warning: Condition 'criticalInitDone' is always true [knownConditionTrueFalse]
+            if (elapsedMs >= targetMs && (criticalInitDone || elapsedMs >= kHardMaxMs)) break;
+                                          ^
+/scan/src/app/rainmgrapp.cpp:124:33: note: Assignment 'criticalInitDone=true', assigned value is 1
+        bool criticalInitDone = true; // set to true after required init steps complete
+                                ^
+/scan/src/app/rainmgrapp.cpp:130:43: note: Condition 'criticalInitDone' is always true
+            if (elapsedMs >= targetMs && (criticalInitDone || elapsedMs >= kHardMaxMs)) break;
+                                          ^
+/scan/src/app/main.cpp:159:13: warning: Condition '!SetupStructuredExceptionHandling()' is always false [knownConditionTrueFalse]
+        if (!SetupStructuredExceptionHandling()) {
+            ^
+/scan/src/app/main.cpp:159:46: note: Calling function 'SetupStructuredExceptionHandling' returns 1
+        if (!SetupStructuredExceptionHandling()) {
+                                             ^
+/scan/src/app/main.cpp:159:13: note: Condition '!SetupStructuredExceptionHandling()' is always false
+        if (!SetupStructuredExceptionHandling()) {
+            ^
+/scan/src/app/main.cpp:59:54: warning: Consider using std::transform algorithm instead of a raw loop. [useStlAlgorithm]
+    for (auto& ch : const_cast<std::wstring&>(l)) ch = towlower(ch);
+                                                     ^
+/scan/src/core/logger_adapter.cpp:12:21: warning: Technically the member function 'RainmeterManager::Core::Logger::ToUtf8' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+std::string Logger::ToUtf8(const std::wstring& w) const {
+                    ^
+/scan/src/core/logger_adapter.h:39:17: note: Technically the member function 'RainmeterManager::Core::Logger::ToUtf8' can be static (but you may consider moving to unnamed namespace).
+    std::string ToUtf8(const std::wstring& w) const;
+                ^
+/scan/src/core/logger_adapter.cpp:12:21: note: Technically the member function 'RainmeterManager::Core::Logger::ToUtf8' can be static (but you may consider moving to unnamed namespace).
+std::string Logger::ToUtf8(const std::wstring& w) const {
+                    ^
+/scan/src/core/logger_adapter.cpp:21:20: warning: Technically the member function 'RainmeterManager::Core::Logger::ToLegacyLevel' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+::LogLevel Logger::ToLegacyLevel(LogLevel lvl) const {
+                   ^
+/scan/src/core/logger_adapter.h:40:16: note: Technically the member function 'RainmeterManager::Core::Logger::ToLegacyLevel' can be static (but you may consider moving to unnamed namespace).
+    ::LogLevel ToLegacyLevel(LogLevel lvl) const;
+               ^
+/scan/src/core/logger_adapter.cpp:21:20: note: Technically the member function 'RainmeterManager::Core::Logger::ToLegacyLevel' can be static (but you may consider moving to unnamed namespace).
+::LogLevel Logger::ToLegacyLevel(LogLevel lvl) const {
+                   ^
+/scan/src/core/security.cpp:0:0: warning: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/scan/src/core/security_adapter.cpp:51:46: warning: Potentially invalid type conversion in old-style C cast, clarify/fix with C++ cast [dangerousTypeCast]
+    in.pbData = (in.cbData == 0) ? nullptr : (BYTE*)plaintext.data();
+                                             ^
+/scan/src/core/security.cpp:495:16: warning: Unused private function: 'Security::isFileSafe' [unusedPrivateFunction]
+bool Security::isFileSafe(const std::string& content) {
+               ^
+/scan/src/core/security.h:49:17: note: Unused private function: 'Security::isFileSafe'
+    static bool isFileSafe(const std::string& content);
+                ^
+/scan/src/core/security.cpp:495:16: note: Unused private function: 'Security::isFileSafe'
+bool Security::isFileSafe(const std::string& content) {
+               ^
+/scan/src/core/security.cpp:314:5: warning: Consider using std::any_of algorithm instead of a raw loop. [useStlAlgorithm]
+    for (const auto& pattern : patterns) {
+    ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:10:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::CreateServer' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::CreateServer(DWORD /*maxInstances*/, DWORD /*bufferSize*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:37:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::CreateServer' can be static (but you may consider moving to unnamed namespace).
+        bool CreateServer(DWORD maxInstances = 1, DWORD bufferSize = 65536);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:10:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::CreateServer' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::CreateServer(DWORD /*maxInstances*/, DWORD /*bufferSize*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:11:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::WaitForConnection' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::WaitForConnection(DWORD /*timeoutMs*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:44:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::WaitForConnection' can be static (but you may consider moving to unnamed namespace).
+        bool WaitForConnection(DWORD timeoutMs = INFINITE);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:11:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::WaitForConnection' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::WaitForConnection(DWORD /*timeoutMs*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:12:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::DisconnectClient' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+void NamedPipeChannel::DisconnectClient() {}
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:49:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::DisconnectClient' can be static (but you may consider moving to unnamed namespace).
+        void DisconnectClient();
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:12:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::DisconnectClient' can be static (but you may consider moving to unnamed namespace).
+void NamedPipeChannel::DisconnectClient() {}
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:14:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ConnectAsClient' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::ConnectAsClient(DWORD /*timeoutMs*/, int /*retryAttempts*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:59:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ConnectAsClient' can be static (but you may consider moving to unnamed namespace).
+        bool ConnectAsClient(DWORD timeoutMs = 5000, int retryAttempts = 3);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:14:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ConnectAsClient' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::ConnectAsClient(DWORD /*timeoutMs*/, int /*retryAttempts*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:16:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SendCommand' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::SendCommand(const RenderCommand& /*command*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:68:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SendCommand' can be static (but you may consider moving to unnamed namespace).
+        bool SendCommand(const RenderCommand& command);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:16:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SendCommand' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::SendCommand(const RenderCommand& /*command*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:17:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ReceiveResult' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::ReceiveResult(RenderResult& /*result*/, DWORD /*timeoutMs*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:76:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ReceiveResult' can be static (but you may consider moving to unnamed namespace).
+        bool ReceiveResult(RenderResult& result, DWORD timeoutMs = 5000);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:17:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ReceiveResult' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::ReceiveResult(RenderResult& /*result*/, DWORD /*timeoutMs*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:18:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SendResult' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::SendResult(const RenderResult& /*result*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:83:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SendResult' can be static (but you may consider moving to unnamed namespace).
+        bool SendResult(const RenderResult& result);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:18:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SendResult' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::SendResult(const RenderResult& /*result*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:19:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ReceiveCommand' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::ReceiveCommand(RenderCommand& /*command*/, DWORD /*timeoutMs*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:91:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ReceiveCommand' can be static (but you may consider moving to unnamed namespace).
+        bool ReceiveCommand(RenderCommand& command, DWORD timeoutMs = INFINITE);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:19:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::ReceiveCommand' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::ReceiveCommand(RenderCommand& /*command*/, DWORD /*timeoutMs*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:21:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::IsConnected' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::IsConnected() const { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:99:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::IsConnected' can be static (but you may consider moving to unnamed namespace).
+        bool IsConnected() const;
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:21:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::IsConnected' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::IsConnected() const { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:24:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::TestConnection' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::TestConnection() { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:117:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::TestConnection' can be static (but you may consider moving to unnamed namespace).
+        bool TestConnection();
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:24:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::TestConnection' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::TestConnection() { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:26:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::EnableAsyncMode' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::EnableAsyncMode(std::function<void(const RenderResult&)> /*callback*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:126:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::EnableAsyncMode' can be static (but you may consider moving to unnamed namespace).
+        bool EnableAsyncMode(std::function<void(const RenderResult&)> callback = nullptr);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:26:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::EnableAsyncMode' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::EnableAsyncMode(std::function<void(const RenderResult&)> /*callback*/) { return false; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:27:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::DisableAsyncMode' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+void NamedPipeChannel::DisableAsyncMode() {}
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:131:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::DisableAsyncMode' can be static (but you may consider moving to unnamed namespace).
+        void DisableAsyncMode();
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:27:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::DisableAsyncMode' can be static (but you may consider moving to unnamed namespace).
+void NamedPipeChannel::DisableAsyncMode() {}
+                       ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:32:24: warning: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SetPipeSecurity' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool NamedPipeChannel::SetPipeSecurity(const std::wstring& /*securityDescriptor*/) { return true; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:138:14: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SetPipeSecurity' can be static (but you may consider moving to unnamed namespace).
+        bool SetPipeSecurity(const std::wstring& securityDescriptor);
+             ^
+/scan/src/render/ipc/named_pipe_channel_stub.cpp:32:24: note: Technically the member function 'RainmeterManager::Render::NamedPipeChannel::SetPipeSecurity' can be static (but you may consider moving to unnamed namespace).
+bool NamedPipeChannel::SetPipeSecurity(const std::wstring& /*securityDescriptor*/) { return true; }
+                       ^
+/scan/src/render/ipc/named_pipe_channel.h:111:21: warning: Function 'GetLastError()' should return member 'lastError_' by const reference. [returnByReference]
+        std::string GetLastError() const;
+                    ^
+/scan/src/render/ipc/named_pipe_channel.h:159:24: warning: Function 'GetStatistics()' should return member 'stats_' by const reference. [returnByReference]
+        PipeStatistics GetStatistics() const;
+                       ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:36:23: warning: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::InitializeIPC' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool RenderIPCBridge::InitializeIPC() {
+                      ^
+/scan/src/render/ipc/render_ipc_bridge.h:84:14: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::InitializeIPC' can be static (but you may consider moving to unnamed namespace).
+        bool InitializeIPC();
+             ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:36:23: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::InitializeIPC' can be static (but you may consider moving to unnamed namespace).
+bool RenderIPCBridge::InitializeIPC() {
+                      ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:45:44: warning: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommandAsync' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+std::future<RenderResult> RenderIPCBridge::SendCommandAsync(const RenderCommand& command) {
+                                           ^
+/scan/src/render/ipc/render_ipc_bridge.h:96:35: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommandAsync' can be static (but you may consider moving to unnamed namespace).
+        std::future<RenderResult> SendCommandAsync(const RenderCommand& command);
+                                  ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:45:44: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommandAsync' can be static (but you may consider moving to unnamed namespace).
+std::future<RenderResult> RenderIPCBridge::SendCommandAsync(const RenderCommand& command) {
+                                           ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:55:31: warning: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommand' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+RenderResult RenderIPCBridge::SendCommand(const RenderCommand& command, uint32_t /*timeoutMs*/) {
+                              ^
+/scan/src/render/ipc/render_ipc_bridge.h:104:22: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommand' can be static (but you may consider moving to unnamed namespace).
+        RenderResult SendCommand(const RenderCommand& command, uint32_t timeoutMs = 5000);
+                     ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:55:31: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommand' can be static (but you may consider moving to unnamed namespace).
+RenderResult RenderIPCBridge::SendCommand(const RenderCommand& command, uint32_t /*timeoutMs*/) {
+                              ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:63:23: warning: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommandFireAndForget' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool RenderIPCBridge::SendCommandFireAndForget(const RenderCommand& /*command*/) {
+                      ^
+/scan/src/render/ipc/render_ipc_bridge.h:111:14: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommandFireAndForget' can be static (but you may consider moving to unnamed namespace).
+        bool SendCommandFireAndForget(const RenderCommand& command);
+             ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:63:23: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::SendCommandFireAndForget' can be static (but you may consider moving to unnamed namespace).
+bool RenderIPCBridge::SendCommandFireAndForget(const RenderCommand& /*command*/) {
+                      ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:67:37: warning: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::QuerySystemCapabilities' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+SystemCapabilities RenderIPCBridge::QuerySystemCapabilities(uint32_t /*timeoutMs*/) {
+                                    ^
+/scan/src/render/ipc/render_ipc_bridge.h:120:28: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::QuerySystemCapabilities' can be static (but you may consider moving to unnamed namespace).
+        SystemCapabilities QuerySystemCapabilities(uint32_t timeoutMs = 3000);
+                           ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:67:37: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::QuerySystemCapabilities' can be static (but you may consider moving to unnamed namespace).
+SystemCapabilities RenderIPCBridge::QuerySystemCapabilities(uint32_t /*timeoutMs*/) {
+                                    ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:71:49: warning: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::GetSupportedBackends' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+std::vector<RenderBackendType> RenderIPCBridge::GetSupportedBackends() {
+                                                ^
+/scan/src/render/ipc/render_ipc_bridge.h:126:40: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::GetSupportedBackends' can be static (but you may consider moving to unnamed namespace).
+        std::vector<RenderBackendType> GetSupportedBackends();
+                                       ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:71:49: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::GetSupportedBackends' can be static (but you may consider moving to unnamed namespace).
+std::vector<RenderBackendType> RenderIPCBridge::GetSupportedBackends() {
+                                                ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:96:23: warning: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::IsHealthy' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool RenderIPCBridge::IsHealthy() const { return false; }
+                      ^
+/scan/src/render/ipc/render_ipc_bridge.h:197:14: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::IsHealthy' can be static (but you may consider moving to unnamed namespace).
+        bool IsHealthy() const;
+             ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:96:23: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::IsHealthy' can be static (but you may consider moving to unnamed namespace).
+bool RenderIPCBridge::IsHealthy() const { return false; }
+                      ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:97:23: warning: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::AttemptRecovery' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool RenderIPCBridge::AttemptRecovery() { return false; }
+                      ^
+/scan/src/render/ipc/render_ipc_bridge.h:203:14: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::AttemptRecovery' can be static (but you may consider moving to unnamed namespace).
+        bool AttemptRecovery();
+             ^
+/scan/src/render/ipc/render_ipc_bridge_stub.cpp:97:23: note: Technically the member function 'RainmeterManager::Render::RenderIPCBridge::AttemptRecovery' can be static (but you may consider moving to unnamed namespace).
+bool RenderIPCBridge::AttemptRecovery() { return false; }
+                      ^
+/scan/src/render/ipc/render_ipc_bridge.cpp:0:0: warning: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/scan/src/render/ipc/render_ipc_bridge.h:191:21: warning: Function 'GetLastError()' should return member 'lastError_' by const reference. [returnByReference]
+        std::string GetLastError() const;
+                    ^
+/scan/src/render/ipc/render_ipc_bridge.cpp:254:24: warning: Variable 'command' can be declared as reference to const [constVariableReference]
+            for (auto& command : pendingCommands_) {
+                       ^
+/scan/src/render/ipc/render_ipc_bridge.cpp:690:20: warning: Variable 'command' can be declared as reference to const [constVariableReference]
+        for (auto& command : pendingCommands_) {
+                   ^
+/scan/src/render/ipc/render_ipc_bridge.cpp:327:9: warning: Access of moved variable 'pendingCommand'. [accessMoved]
+        pendingCommand->promise.set_value(failureResult);
+        ^
+/scan/src/render/ipc/render_ipc_bridge.cpp:306:51: note: Calling std::move(pendingCommand)
+            pendingCommands_[command.commandId] = std::move(pendingCommand);
+                                                  ^
+/scan/src/render/ipc/render_ipc_bridge.cpp:327:9: note: Access of moved variable 'pendingCommand'.
+        pendingCommand->promise.set_value(failureResult);
+        ^
+/scan/src/render/ipc/shared_memory_manager.cpp:0:0: warning: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/scan/src/render/ipc/shared_memory_manager.cpp:513:29: warning: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::SerializeCommand' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+size_t SharedMemoryManager::SerializeCommand(const RenderCommand& command, uint8_t* buffer, size_t bufferSize)
+                            ^
+/scan/src/render/ipc/shared_memory_manager.h:182:16: note: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::SerializeCommand' can be static (but you may consider moving to unnamed namespace).
+        size_t SerializeCommand(const RenderCommand& command, uint8_t* buffer, size_t bufferSize);
+               ^
+/scan/src/render/ipc/shared_memory_manager.cpp:513:29: note: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::SerializeCommand' can be static (but you may consider moving to unnamed namespace).
+size_t SharedMemoryManager::SerializeCommand(const RenderCommand& command, uint8_t* buffer, size_t bufferSize)
+                            ^
+/scan/src/render/ipc/shared_memory_manager.cpp:568:27: warning: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::DeserializeCommand' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool SharedMemoryManager::DeserializeCommand(const uint8_t* buffer, size_t bufferSize, RenderCommand& command)
+                          ^
+/scan/src/render/ipc/shared_memory_manager.h:183:14: note: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::DeserializeCommand' can be static (but you may consider moving to unnamed namespace).
+        bool DeserializeCommand(const uint8_t* buffer, size_t bufferSize, RenderCommand& command);
+             ^
+/scan/src/render/ipc/shared_memory_manager.cpp:568:27: note: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::DeserializeCommand' can be static (but you may consider moving to unnamed namespace).
+bool SharedMemoryManager::DeserializeCommand(const uint8_t* buffer, size_t bufferSize, RenderCommand& command)
+                          ^
+/scan/src/render/ipc/shared_memory_manager.cpp:626:29: warning: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::SerializeResult' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+size_t SharedMemoryManager::SerializeResult(const RenderResult& result, uint8_t* buffer, size_t bufferSize)
+                            ^
+/scan/src/render/ipc/shared_memory_manager.h:184:16: note: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::SerializeResult' can be static (but you may consider moving to unnamed namespace).
+        size_t SerializeResult(const RenderResult& result, uint8_t* buffer, size_t bufferSize);
+               ^
+/scan/src/render/ipc/shared_memory_manager.cpp:626:29: note: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::SerializeResult' can be static (but you may consider moving to unnamed namespace).
+size_t SharedMemoryManager::SerializeResult(const RenderResult& result, uint8_t* buffer, size_t bufferSize)
+                            ^
+/scan/src/render/ipc/shared_memory_manager.cpp:655:27: warning: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::DeserializeResult' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool SharedMemoryManager::DeserializeResult(const uint8_t* buffer, size_t bufferSize, RenderResult& result)
+                          ^
+/scan/src/render/ipc/shared_memory_manager.h:185:14: note: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::DeserializeResult' can be static (but you may consider moving to unnamed namespace).
+        bool DeserializeResult(const uint8_t* buffer, size_t bufferSize, RenderResult& result);
+             ^
+/scan/src/render/ipc/shared_memory_manager.cpp:655:27: note: Technically the member function 'RainmeterManager::Render::SharedMemoryManager::DeserializeResult' can be static (but you may consider moving to unnamed namespace).
+bool SharedMemoryManager::DeserializeResult(const uint8_t* buffer, size_t bufferSize, RenderResult& result)
+                          ^
+/scan/src/render/ipc/shared_memory_manager.cpp:361:55: warning: Same expression in both branches of ternary operator. [duplicateExpressionTernary]
+        DWORD protection = createNew ? PAGE_READWRITE : PAGE_READWRITE;
+                                                      ^
+/scan/src/render/ipc/shared_memory_manager.cpp:362:56: warning: Same expression in both branches of ternary operator. [duplicateExpressionTernary]
+        DWORD access = createNew ? FILE_MAP_ALL_ACCESS : FILE_MAP_ALL_ACCESS;
+                                                       ^
+/scan/src/render/ipc/shared_memory_manager.cpp:517:18: warning: Variable 'bufferEnd' can be declared as pointer to const [constVariablePointer]
+        uint8_t* bufferEnd = buffer + bufferSize;
+                 ^
+/scan/src/render/ipc/shared_memory_manager.cpp:630:18: warning: Variable 'bufferEnd' can be declared as pointer to const [constVariablePointer]
+        uint8_t* bufferEnd = buffer + bufferSize;
+                 ^
+/scan/src/ui/dashboard_tab.cpp:0:0: warning: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/scan/src/render/test/render_core_test.cpp:156:23: warning: Technically the member function 'RainmeterManager::Test::RenderCoreIllustroTest::CreateIllustroClockContent' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    ContentParameters CreateIllustroClockContent() {
+                      ^
+/scan/src/render/test/render_core_test.cpp:162:21: warning: Uninitialized variable: &timeinfo [uninitvar]
+        localtime_s(&timeinfo, &time_t);
+                    ^
+/scan/src/ui/options_window.h:15:5: warning: Class 'OptionsWindow' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    OptionsWindow(HINSTANCE hInstance);
+    ^
+/scan/src/ui/dashboard_tab.cpp:247:20: warning: Technically the member function 'RainmeterManager::UI::DashboardTab::ResolveRenderProcess' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool DashboardTab::ResolveRenderProcess(std::wstring& outPath, std::wstring& outArgs) {
+                   ^
+/scan/src/ui/dashboard_tab.h:36:10: note: Technically the member function 'RainmeterManager::UI::DashboardTab::ResolveRenderProcess' can be static (but you may consider moving to unnamed namespace).
+    bool ResolveRenderProcess(std::wstring& outPath, std::wstring& outArgs);
+         ^
+/scan/src/ui/dashboard_tab.cpp:247:20: note: Technically the member function 'RainmeterManager::UI::DashboardTab::ResolveRenderProcess' can be static (but you may consider moving to unnamed namespace).
+bool DashboardTab::ResolveRenderProcess(std::wstring& outPath, std::wstring& outArgs) {
+                   ^
+/scan/src/ui/dashboard_tab.cpp:25:62: warning: C-style pointer casting [cstyleCast]
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
+                                                             ^
+/scan/src/ui/splash_screen.cpp:0:0: warning: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/scan/src/ui/splash_screen.cpp:48:24: warning: Member variable 'CinematicSplashScreen::fadeOpacity_' is not initialized in the constructor. [uninitMemberVar]
+CinematicSplashScreen::CinematicSplashScreen(HINSTANCE hInstance, const Config& config)
+                       ^
+/scan/src/ui/splash_screen.cpp:48:24: warning: Member variable 'CinematicSplashScreen::logoWidth_' is not initialized in the constructor. [uninitMemberVar]
+CinematicSplashScreen::CinematicSplashScreen(HINSTANCE hInstance, const Config& config)
+                       ^
+/scan/src/ui/splash_screen.cpp:48:24: warning: Member variable 'CinematicSplashScreen::logoHeight_' is not initialized in the constructor. [uninitMemberVar]
+CinematicSplashScreen::CinematicSplashScreen(HINSTANCE hInstance, const Config& config)
+                       ^
+/scan/src/ui/splash_screen.cpp:48:24: warning: Member variable 'CinematicSplashScreen::progressBarWidth_' is not initialized in the constructor. [uninitMemberVar]
+CinematicSplashScreen::CinematicSplashScreen(HINSTANCE hInstance, const Config& config)
+                       ^
+/scan/src/ui/splash_screen.cpp:48:24: warning: Member variable 'CinematicSplashScreen::progressBarHeight_' is not initialized in the constructor. [uninitMemberVar]
+CinematicSplashScreen::CinematicSplashScreen(HINSTANCE hInstance, const Config& config)
+                       ^
+/scan/src/ui/splash_screen.h:133:10: warning: Member variable 'CinematicSplashScreen::splashWindow_' is in the wrong place in the initializer list. [initializerList]
+    HWND splashWindow_;
+         ^
+/scan/src/ui/splash_screen.cpp:51:7: note: Member variable 'CinematicSplashScreen::splashWindow_' is in the wrong place in the initializer list.
+    , splashWindow_(nullptr)
+      ^
+/scan/src/ui/splash_screen.h:133:10: note: Member variable 'CinematicSplashScreen::splashWindow_' is in the wrong place in the initializer list.
+    HWND splashWindow_;
+         ^
+/scan/src/ui/splash_screen.h:138:9: warning: Member variable 'CinematicSplashScreen::currentProgress_' is in the wrong place in the initializer list. [initializerList]
+    int currentProgress_;
+        ^
+/scan/src/ui/splash_screen.cpp:55:7: note: Member variable 'CinematicSplashScreen::currentProgress_' is in the wrong place in the initializer list.
+    , currentProgress_(0)
+      ^
+/scan/src/ui/splash_screen.h:138:9: note: Member variable 'CinematicSplashScreen::currentProgress_' is in the wrong place in the initializer list.
+    int currentProgress_;
+        ^
+/scan/src/ui/splash_screen.h:363:26: warning: Member variable 'CinematicSplashScreen::audioEnumerator_' is in the wrong place in the initializer list. [initializerList]
+    IMMDeviceEnumerator* audioEnumerator_ = nullptr;
+                         ^
+/scan/src/ui/splash_screen.cpp:65:7: note: Member variable 'CinematicSplashScreen::audioEnumerator_' is in the wrong place in the initializer list.
+    , audioEnumerator_(nullptr)
+      ^
+/scan/src/ui/splash_screen.h:363:26: note: Member variable 'CinematicSplashScreen::audioEnumerator_' is in the wrong place in the initializer list.
+    IMMDeviceEnumerator* audioEnumerator_ = nullptr;
+                         ^
+/scan/src/ui/splash_screen.cpp:973:29: warning: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::LogEvent' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+void CinematicSplashScreen::LogEvent(const std::wstring& event, ::LogLevel level) const {
+                            ^
+/scan/src/ui/splash_screen.h:332:10: note: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::LogEvent' can be static (but you may consider moving to unnamed namespace).
+    void LogEvent(const std::wstring& event, ::LogLevel level = ::LogLevel::INFO) const;
+         ^
+/scan/src/ui/splash_screen.cpp:973:29: note: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::LogEvent' can be static (but you may consider moving to unnamed namespace).
+void CinematicSplashScreen::LogEvent(const std::wstring& event, ::LogLevel level) const {
+                            ^
+/scan/src/ui/splash_screen.cpp:814:29: warning: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::UpdateLeaves' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+void CinematicSplashScreen::UpdateLeaves(float deltaTime) {
+                            ^
+/scan/src/ui/splash_screen.h:343:10: note: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::UpdateLeaves' can be static (but you may consider moving to unnamed namespace).
+    void UpdateLeaves(float deltaTime);
+         ^
+/scan/src/ui/splash_screen.cpp:814:29: note: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::UpdateLeaves' can be static (but you may consider moving to unnamed namespace).
+void CinematicSplashScreen::UpdateLeaves(float deltaTime) {
+                            ^
+/scan/src/ui/splash_screen.cpp:911:29: warning: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::GenerateWaterSounds' can be const. [functionConst]
+void CinematicSplashScreen::GenerateWaterSounds(float* buffer, int sampleCount) {
+                            ^
+/scan/src/ui/splash_screen.h:348:10: note: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::GenerateWaterSounds' can be const.
+    void GenerateWaterSounds(float* buffer, int sampleCount);
+         ^
+/scan/src/ui/splash_screen.cpp:911:29: note: Technically the member function 'RainmeterManager::UI::CinematicSplashScreen::GenerateWaterSounds' can be const.
+void CinematicSplashScreen::GenerateWaterSounds(float* buffer, int sampleCount) {
+                            ^
+/scan/src/ui/splash_screen.cpp:162:37: warning: Local variable 'lock' shadows outer variable [shadowVariable]
+        std::lock_guard<std::mutex> lock(stateMutex_);
+                                    ^
+/scan/src/ui/splash_screen.cpp:110:33: note: Shadowed declaration
+    std::lock_guard<std::mutex> lock(stateMutex_);
+                                ^
+/scan/src/ui/splash_screen.cpp:162:37: note: Shadow variable
+        std::lock_guard<std::mutex> lock(stateMutex_);
+                                    ^
+/scan/src/ui/task_manager_tab.cpp:0:0: warning: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/scan/src/ui/ui_prefs.cpp:0:0: warning: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+/scan/src/widgets/community/community_feedback_integration.cpp:291:0: warning: #endif without #if [preprocessorErrorDirective]
+#endif // RM_ENABLE_COMMUNITY_WIDGETS
+^
+/scan/src/ui/task_manager_tab.cpp:397:22: warning: Technically the member function 'RainmeterManager::UI::TaskManagerTab::ResolveRenderProcess' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+bool TaskManagerTab::ResolveRenderProcess(std::wstring& outPath, std::wstring& outArgs) {
+                     ^
+/scan/src/ui/task_manager_tab.h:38:10: note: Technically the member function 'RainmeterManager::UI::TaskManagerTab::ResolveRenderProcess' can be static (but you may consider moving to unnamed namespace).
+    bool ResolveRenderProcess(std::wstring& outPath, std::wstring& outArgs);
+         ^
+/scan/src/ui/task_manager_tab.cpp:397:22: note: Technically the member function 'RainmeterManager::UI::TaskManagerTab::ResolveRenderProcess' can be static (but you may consider moving to unnamed namespace).
+bool TaskManagerTab::ResolveRenderProcess(std::wstring& outPath, std::wstring& outArgs) {
+                     ^
+/scan/src/ui/task_manager_tab.cpp:616:22: warning: Local variable 'cmd' shadows outer variable [shadowVariable]
+        std::wstring cmd; if (ExtractString(json, cursor, "CommandLine", cmd)) r.cmd = cmd;
+                     ^
+/scan/src/ui/task_manager_tab.cpp:587:45: note: Shadowed declaration
+    RainmeterManager::Render::RenderCommand cmd{};
+                                            ^
+/scan/src/ui/task_manager_tab.cpp:616:22: note: Shadow variable
+        std::wstring cmd; if (ExtractString(json, cursor, "CommandLine", cmd)) r.cmd = cmd;
+                     ^
+/scan/src/ui/task_manager_tab.cpp:685:60: warning: Consider using std::count_if algorithm instead of a raw loop. [useStlAlgorithm]
+    int totalCols = 0; for (bool v : colVisible_) if (v) ++totalCols;
+                                                           ^
+/scan/src/ui/task_manager_tab.cpp:738:34: warning: Consider using std::transform algorithm instead of a raw loop. [useStlAlgorithm]
+    for (unsigned char c : u8) w.push_back((wchar_t)c);
+                                 ^
