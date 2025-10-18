@@ -43,6 +43,9 @@ x86/
 *.so
 *.dylib
 
+# Allow build scripts to be tracked
+!scripts/build/**
+
 # Misc IDE
 *.sln.docstates
 .vscode/.history/
