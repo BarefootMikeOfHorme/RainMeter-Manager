@@ -2,12 +2,13 @@
 #include "shared_memory_manager.h"
 #include "named_pipe_channel.h"
 #include "../../core/logger.h"
+#include "../../core/logger_adapter.h"
 #include <sstream>
 #include <chrono>
 #include <algorithm>
 
 using namespace RainmeterManager::Render;
-using namespace RainmeterManager::Core;
+// Note: using namespace Core conflicts with member usage
 
 namespace {
     const wchar_t* RENDER_PROCESS_NAME = L"RenderProcess.exe";
@@ -20,10 +21,10 @@ namespace {
 
 RenderIPCBridge::RenderIPCBridge(IPCMode mode)
     : ipcMode_(mode)
-    , logger_(ServiceLocator::Instance().Get<Logger>())
+    , logger_(RainmeterManager::Core::Logger::GetInstance())
 {
     ZeroMemory(&processInfo_, sizeof(processInfo_));
-    logger_.LogInfo(L"RenderIPCBridge: Created with IPC mode %d", static_cast<int>(mode));
+    LOG_INFO("RenderIPCBridge: Created with IPC mode " + std::to_string(static_cast<int>(mode)));
 }
 
 RenderIPCBridge::~RenderIPCBridge()
@@ -550,8 +551,8 @@ bool RenderIPCBridge::StartProcessInternal(const std::wstring& path, const std::
         );
         
         if (!result) {
-            DWORD error = GetLastError();
-            SetLastError("Failed to create process. Error: " + std::to_string(error));
+            DWORD error = ::GetLastError();
+            this->SetLastError("Failed to create process. Error: " + std::to_string(error));
             return false;
         }
         

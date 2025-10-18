@@ -2,6 +2,7 @@
 
 #include "logger.h"
 #include <string>
+#include <vector>
 #include <mutex>
 #include <windows.h>
 
@@ -28,6 +29,22 @@ public:
     void LogInfo(const std::wstring& message);
     void LogWarning(const std::wstring& message);
     void LogError(const std::wstring& message);
+    
+    // Formatted logging (printf-style)
+    template<typename... Args>
+    void LogInfo(const wchar_t* format, Args&&... args) {
+        LogInfo(FormatString(format, std::forward<Args>(args)...));
+    }
+    
+    template<typename... Args>
+    void LogWarning(const wchar_t* format, Args&&... args) {
+        LogWarning(FormatString(format, std::forward<Args>(args)...));
+    }
+    
+    template<typename... Args>
+    void LogError(const wchar_t* format, Args&&... args) {
+        LogError(FormatString(format, std::forward<Args>(args)...));
+    }
 
     // Generic wide logging
     void LogWide(LogLevel level, const std::wstring& message);
@@ -38,6 +55,16 @@ private:
 
     std::string ToUtf8(const std::wstring& w) const;
     ::LogLevel ToLegacyLevel(LogLevel lvl) const;
+    
+    // Format string helper (secure version)
+    template<typename... Args>
+    std::wstring FormatString(const wchar_t* format, Args&&... args) const {
+        int size = _snwprintf_s(nullptr, 0, _TRUNCATE, format, std::forward<Args>(args)...);
+        if (size <= 0) return std::wstring(format);
+        std::vector<wchar_t> buf(size + 1);
+        _snwprintf_s(buf.data(), buf.size(), _TRUNCATE, format, std::forward<Args>(args)...);
+        return std::wstring(buf.data());
+    }
 
     std::mutex mtx_;
 };

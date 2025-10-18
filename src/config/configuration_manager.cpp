@@ -78,9 +78,15 @@ bool ConfigurationManager::Initialize(const std::wstring& configPath) {
     }
 
     // Determine format from extension
-    if (configFilePath_.ends_with(L".json")) {
+    // C++17 compatible string ending check
+    auto endsWith = [](const std::wstring& str, const std::wstring& suffix) {
+        if (suffix.length() > str.length()) return false;
+        return str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0;
+    };
+    
+    if (endsWith(configFilePath_, L".json")) {
         configFormat_ = L"json";
-    } else if (configFilePath_.ends_with(L".ini") || configFilePath_.ends_with(L".cfg")) {
+    } else if (endsWith(configFilePath_, L".ini") || endsWith(configFilePath_, L".cfg")) {
         configFormat_ = L"ini";
     }
 

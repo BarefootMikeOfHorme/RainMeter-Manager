@@ -252,7 +252,7 @@ void TaskManagerTab::DrawSummary(HDC hdc, const RECT& rc) {
                 } else if (wcscmp(label, L"Mem") == 0 && sysMemTotalMB_ > 0) {
                     double pct = v / sysMemTotalMB_; if (pct > 1) pct = 1; y = gy + gh - (int)(pct * gh);
                 } else if (wcscmp(label, L"Net") == 0) {
-                    double scaled = min(1.0, v / 50.0); y = gy + gh - (int)(scaled * gh); // scale to 50 MB/s
+                    double scaled = (std::min)(1.0, v / 50.0); y = gy + gh - (int)(scaled * gh); // scale to 50 MB/s
                 }
                 if (i == 0) MoveToEx(hdc, x, y, nullptr); else LineTo(hdc, x, y);
             }

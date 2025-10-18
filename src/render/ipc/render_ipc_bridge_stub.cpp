@@ -1,10 +1,14 @@
 #include "render_ipc_bridge.h"
 #include "shared_memory_manager.h"
 #include "named_pipe_channel.h"
+#include "../../core/logger_adapter.h"
 
 using namespace RainmeterManager::Render;
 
-RenderIPCBridge::RenderIPCBridge(IPCMode mode) : ipcMode_(mode) {
+RenderIPCBridge::RenderIPCBridge(IPCMode mode) 
+    : ipcMode_(mode)
+    , logger_(RainmeterManager::Core::Logger::GetInstance())
+{
     ZeroMemory(&processInfo_, sizeof(processInfo_));
 }
 

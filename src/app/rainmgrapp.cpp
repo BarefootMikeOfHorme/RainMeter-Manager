@@ -454,6 +454,25 @@ bool RAINMGRApp::CreateMainWindow() {
             this                            // User data (this pointer)
         );
         RawTrace("CreateMainWindow: CreateWindowExW returned");
+
+        if (!mainWindow_) {
+            DWORD err = GetLastError();
+            LogApplicationEvent(L"CreateWindowExW failed, error: " + std::to_wstring(err), Core::LogLevel::Error);
+            return false;
+        }
+
+        // Window created successfully; keep it hidden until ShowMainWindow()
+        LogApplicationEvent(L"Main window created successfully");
+        return true;
+    } catch (const std::exception& e) {
+        std::string errorMsg = "Exception in CreateMainWindow: ";
+        errorMsg += e.what();
+        std::wstring wideError(errorMsg.begin(), errorMsg.end());
+        LogApplicationEvent(wideError, Core::LogLevel::Error);
+        return false;
+    } catch (...) {
+        LogApplicationEvent(L"Unknown exception in CreateMainWindow", Core::LogLevel::Error);
+        return false;
     }
 }
 

@@ -5,6 +5,17 @@
 #include "../core/logger.h"
 #include <algorithm>
 #include <fstream>
+#include <codecvt>
+#include <locale>
+
+// Helper function to convert wide string to narrow string
+static std::string WStringToString(const std::wstring& wstr) {
+    if (wstr.empty()) return std::string();
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+    std::string strTo(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+    return strTo;
+}
 
 namespace RainmeterManager {
 namespace Widgets {
@@ -40,8 +51,7 @@ bool WidgetManager::Initialize(std::shared_ptr<Core::ISystemMonitor> monitor) {
     // Initialize all existing widgets
     for (auto& widget : widgets_) {
         if (!widget->Initialize()) {
-            LOG_ERROR("Failed to initialize widget: " + 
-                     std::string(widget->GetName().begin(), widget->GetName().end()));
+            LOG_ERROR("Failed to initialize widget: " + WStringToString(widget->GetName()));
             continue;
         }
 
@@ -148,18 +158,16 @@ bool WidgetManager::AddWidget(std::unique_ptr<IWidget> widget) {
 
     // Check for duplicate names
     if (widgetsByName_.find(name) != widgetsByName_.end()) {
-        LOG_ERROR("Widget with name already exists: " + 
-                 std::string(name.begin(), name.end()));
+        LOG_ERROR("Widget with name already exists: " + WStringToString(name));
         return false;
     }
 
-    LOG_INFO("Adding widget: " + std::string(name.begin(), name.end()));
+    LOG_INFO("Adding widget: " + WStringToString(name));
 
     // Initialize if manager is already initialized
     if (initialized_) {
         if (!widget->Initialize()) {
-            LOG_ERROR("Failed to initialize new widget: " + 
-                     std::string(name.begin(), name.end()));
+            LOG_ERROR("Failed to initialize new widget: " + WStringToString(name));
             return false;
         }
 
@@ -174,7 +182,7 @@ bool WidgetManager::AddWidget(std::unique_ptr<IWidget> widget) {
     widgetsByName_[name] = widgetPtr;
     widgets_.push_back(std::move(widget));
 
-    LOG_INFO("Widget added successfully: " + std::string(name.begin(), name.end()));
+    LOG_INFO("Widget added successfully: " + WStringToString(name));
     return true;
 }
 
@@ -183,11 +191,11 @@ bool WidgetManager::RemoveWidget(const std::wstring& name) {
 
     auto it = widgetsByName_.find(name);
     if (it == widgetsByName_.end()) {
-        LOG_WARNING("Widget not found: " + std::string(name.begin(), name.end()));
+        LOG_WARNING("Widget not found: " + WStringToString(name));
         return false;
     }
 
-    LOG_INFO("Removing widget: " + std::string(name.begin(), name.end()));
+    LOG_INFO("Removing widget: " + WStringToString(name));
 
     // Find and remove from vector
     auto vecIt = std::find_if(widgets_.begin(), widgets_.end(),
@@ -202,7 +210,7 @@ bool WidgetManager::RemoveWidget(const std::wstring& name) {
 
     widgetsByName_.erase(it);
 
-    LOG_INFO("Widget removed successfully: " + std::string(name.begin(), name.end()));
+    LOG_INFO("Widget removed successfully: " + WStringToString(name));
     return true;
 }
 
@@ -247,7 +255,7 @@ void WidgetManager::ClearAllWidgets() {
 }
 
 bool WidgetManager::LoadWidgetsFromConfig(const std::wstring& configFile) {
-    LOG_INFO("Loading widgets from config: " + std::string(configFile.begin(), configFile.end()));
+    LOG_INFO("Loading widgets from config: " + WStringToString(configFile));
 
     // TODO: Implement JSON/INI config loading
     // For now, return false to indicate not implemented
@@ -256,7 +264,7 @@ bool WidgetManager::LoadWidgetsFromConfig(const std::wstring& configFile) {
 }
 
 bool WidgetManager::SaveWidgetsToConfig(const std::wstring& configFile) {
-    LOG_INFO("Saving widgets to config: " + std::string(configFile.begin(), configFile.end()));
+    LOG_INFO("Saving widgets to config: " + WStringToString(configFile));
 
     // TODO: Implement JSON/INI config saving
     // For now, return false to indicate not implemented
@@ -328,7 +336,7 @@ void WidgetManager::ShowWidget(const std::wstring& name) {
     IWidget* widget = GetWidget(name);
     if (widget) {
         widget->SetVisible(true);
-        LOG_INFO("Widget shown: " + std::string(name.begin(), name.end()));
+        LOG_INFO("Widget shown: " + WStringToString(name));
     }
 }
 
@@ -336,7 +344,7 @@ void WidgetManager::HideWidget(const std::wstring& name) {
     IWidget* widget = GetWidget(name);
     if (widget) {
         widget->SetVisible(false);
-        LOG_INFO("Widget hidden: " + std::string(name.begin(), name.end()));
+        LOG_INFO("Widget hidden: " + WStringToString(name));
     }
 }
 

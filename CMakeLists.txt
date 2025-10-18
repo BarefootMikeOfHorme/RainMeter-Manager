@@ -66,8 +66,17 @@ option(ENABLE_SANITIZERS "Enable address sanitizer in Debug mode" OFF)
 
 # Compiler-specific options
 if(MSVC)
-    # Visual Studio specific options
-    add_compile_options(/W4 /MP /EHsc)
+    # Visual Studio specific options with security hardening
+    # /W4 = Warning level 4
+    # /MP = Multi-processor compilation
+    # /EHsc = C++ exception handling
+    # /GS = Buffer security checks
+    # /sdl = SDL security checks
+    add_compile_options(/W4 /MP /EHsc /GS /sdl)
+    
+    # /Qspectre = Spectre mitigation (optional, requires VS component)
+    # Install via: VS Installer > Individual Components > "MSVC v143 Spectre-mitigated libs"
+    # Uncomment to enable: add_compile_options(/Qspectre)
     
     # Debug-specific options
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi /Od /MTd /DDEBUG /D_DEBUG")
@@ -76,6 +85,20 @@ if(MSVC)
     # Release-specific options
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /Ob2 /MT /DNDEBUG")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /O2 /Ob2 /MT /DNDEBUG")
+    
+    # Security hardening linker flags
+    # /DYNAMICBASE = ASLR support
+    # /NXCOMPAT = DEP (Data Execution Prevention)
+    # /HIGHENTROPYVA = 64-bit ASLR
+    # /GUARD:CF = Control Flow Guard
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DYNAMICBASE /NXCOMPAT /HIGHENTROPYVA /GUARD:CF")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DYNAMICBASE /NXCOMPAT /HIGHENTROPYVA /GUARD:CF")
+    
+    # SafeSEH for 32-bit builds only
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH")
+    endif()
     
     # Common definitions
     add_definitions(-D_UNICODE -DUNICODE -D_WINDOWS)

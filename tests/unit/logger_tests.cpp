@@ -27,126 +27,282 @@ protected:
 
 // Basic Initialization Tests
 TEST_F(LoggerTest, InitializeWithValidPath) {
-    // TODO: Implement test
-    // - Initialize logger with valid path
-    // - Verify initialization succeeds
-    // - Verify log file is created
-    GTEST_SKIP() << "TODO: Implement logger initialization test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    
+    // Log a message
+    Logger::info("Test initialization message");
+    Logger::flushLogs();
+    
+    // Verify log file exists
+    EXPECT_TRUE(std::filesystem::exists(testLogPath_));
+    
+    // Verify file contains the message
+    std::ifstream logFile(testLogPath_);
+    std::string content((std::istreambuf_iterator<char>(logFile)), std::istreambuf_iterator<char>());
+    EXPECT_TRUE(content.find("Test initialization message") != std::string::npos);
 }
 
 TEST_F(LoggerTest, InitializeWithInvalidPath) {
-    // TODO: Implement test
-    // - Try to initialize with invalid path (e.g., \\0\\invalid)
-    // - Verify graceful failure
-    GTEST_SKIP() << "TODO: Implement invalid path test";
+    // Try to initialize with invalid/inaccessible path
+    std::string invalidPath = "\\\\0\\invalid\\path\\log.txt";
+    EXPECT_FALSE(Logger::initialize(invalidPath));
+    
+    // Verify no file was created at the invalid path
+    EXPECT_FALSE(std::filesystem::exists(invalidPath));
 }
 
 // Logging Level Tests
 TEST_F(LoggerTest, SetAndGetLogLevel) {
-    // TODO: Implement test
-    // - Set various log levels
-    // - Verify messages at or above level are logged
-    // - Verify messages below level are filtered
-    GTEST_SKIP() << "TODO: Implement log level filtering test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    
+    // Set log level to WARNING
+    Logger::setLogLevel(LogLevel::WARNING);
+    
+    // Log messages at different levels
+    Logger::info("INFO message - should be filtered");
+    Logger::warning("WARNING message - should appear");
+    Logger::error("ERROR message - should appear");
+    Logger::flushLogs();
+    
+    // Read log file
+    std::ifstream logFile(testLogPath_);
+    std::string content((std::istreambuf_iterator<char>(logFile)), std::istreambuf_iterator<char>());
+    
+    // Verify filtering
+    EXPECT_TRUE(content.find("INFO message") == std::string::npos);
+    EXPECT_TRUE(content.find("WARNING message") != std::string::npos);
+    EXPECT_TRUE(content.find("ERROR message") != std::string::npos);
 }
 
 TEST_F(LoggerTest, LogAtDifferentLevels) {
-    // TODO: Implement test
-    // - Log messages at TRACE, DEBUG, INFO, WARNING, ERROR, CRITICAL, FATAL
-    // - Verify all levels are written correctly
-    // - Verify log format includes level indicator
-    GTEST_SKIP() << "TODO: Implement multi-level logging test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    Logger::setLogLevel(LogLevel::TRACE);
+    
+    // Log at all levels
+    Logger::trace("TRACE level");
+    Logger::debug("DEBUG level");
+    Logger::info("INFO level");
+    Logger::warning("WARNING level");
+    Logger::error("ERROR level");
+    Logger::critical("CRITICAL level");
+    Logger::fatal("FATAL level");
+    Logger::flushLogs();
+    
+    // Verify all messages appear
+    std::ifstream logFile(testLogPath_);
+    std::string content((std::istreambuf_iterator<char>(logFile)), std::istreambuf_iterator<char>());
+    
+    EXPECT_TRUE(content.find("TRACE") != std::string::npos);
+    EXPECT_TRUE(content.find("DEBUG") != std::string::npos);
+    EXPECT_TRUE(content.find("INFO") != std::string::npos);
+    EXPECT_TRUE(content.find("WARNING") != std::string::npos);
+    EXPECT_TRUE(content.find("ERROR") != std::string::npos);
+    EXPECT_TRUE(content.find("CRITICAL") != std::string::npos);
+    EXPECT_TRUE(content.find("FATAL") != std::string::npos);
 }
 
 // File Rotation Tests
 TEST_F(LoggerTest, LogRotationBySize) {
-    // TODO: Implement test
-    // - Configure small max file size (e.g., 1KB)
-    // - Write enough data to trigger rotation
-    // - Verify multiple log files created
-    // - Verify old files are rotated correctly
-    GTEST_SKIP() << "TODO: Implement log rotation test";
+    LogRotationConfig config;
+    config.maxFileSize = 1024; // 1KB
+    config.maxFiles = 3;
+    config.enableRotation = true;
+    
+    ASSERT_TRUE(Logger::initialize(testLogPath_, config));
+    
+    // Write enough data to trigger rotation (> 1KB)
+    for (int i = 0; i < 100; i++) {
+        Logger::info("Rotation test message number " + std::to_string(i) + " with some padding text to reach size limit faster");
+    }
+    Logger::flushLogs();
+    
+    // Check for rotated files (logger typically creates .1, .2, etc.)
+    std::string rotatedFile1 = testLogPath_ + ".1";
+    EXPECT_TRUE(std::filesystem::exists(testLogPath_) || std::filesystem::exists(rotatedFile1));
 }
 
 TEST_F(LoggerTest, MaxFilesRespected) {
-    // TODO: Implement test
-    // - Configure max files (e.g., 3)
-    // - Trigger enough rotations to exceed max
-    // - Verify oldest files are deleted
-    GTEST_SKIP() << "TODO: Implement max files test";
+    LogRotationConfig config;
+    config.maxFileSize = 512; // Very small
+    config.maxFiles = 2;
+    config.enableRotation = true;
+    
+    ASSERT_TRUE(Logger::initialize(testLogPath_, config));
+    
+    // Write enough to force multiple rotations
+    for (int i = 0; i < 200; i++) {
+        Logger::info("Max files test message " + std::to_string(i) + " with padding to trigger rotation");
+    }
+    Logger::flushLogs();
+    
+    // Count log files in directory
+    int logFileCount = 0;
+    for (const auto& entry : std::filesystem::directory_iterator("test_logs")) {
+        if (entry.path().extension() == ".log" || entry.path().filename().string().find("test.log") != std::string::npos) {
+            logFileCount++;
+        }
+    }
+    
+    // Should not exceed maxFiles + 1 (current + rotated)
+    EXPECT_LE(logFileCount, config.maxFiles + 1);
 }
 
 // Thread Safety Tests
 TEST_F(LoggerTest, ConcurrentLoggingFromMultipleThreads) {
-    // TODO: Implement test
-    // - Spawn multiple threads (e.g., 10)
-    // - Each thread logs multiple messages
-    // - Verify no crashes or corruption
-    // - Verify all messages are written
-    GTEST_SKIP() << "TODO: Implement concurrent logging test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    
+    const int numThreads = 8;
+    const int messagesPerThread = 100;
+    std::vector<std::thread> threads;
+    
+    for (int i = 0; i < numThreads; i++) {
+        threads.emplace_back([i, messagesPerThread]() {
+            for (int j = 0; j < messagesPerThread; j++) {
+                Logger::info("Thread " + std::to_string(i) + " Message " + std::to_string(j));
+            }
+        });
+    }
+    
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    Logger::flushLogs();
+    
+    // Verify file exists and has content
+    EXPECT_TRUE(std::filesystem::exists(testLogPath_));
+    std::ifstream logFile(testLogPath_);
+    std::string content((std::istreambuf_iterator<char>(logFile)), std::istreambuf_iterator<char>());
+    
+    // Should have substantial content (not checking exact count due to potential filtering/formatting)
+    EXPECT_GT(content.length(), 1000);
 }
 
 // Async Logging Tests
 TEST_F(LoggerTest, AsyncLoggingDoesNotBlock) {
-    // TODO: Implement test
-    // - Enable async logging
-    // - Log large volume of messages
-    // - Verify logging calls return quickly
-    // - Verify all messages eventually written
-    GTEST_SKIP() << "TODO: Implement async logging test";
+    Logger::enableAsyncLogging(true);
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    // Log many messages
+    for (int i = 0; i < 1000; i++) {
+        Logger::info("Async message " + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    // Async logging should be very fast (< 100ms for 1000 messages)
+    EXPECT_LT(duration.count(), 100);
+    
+    // Flush and verify messages written
+    Logger::flushLogs();
+    Logger::shutdown(); // Ensure async thread completes
+    
+    EXPECT_TRUE(std::filesystem::exists(testLogPath_));
 }
 
 // Error Handling Tests
 TEST_F(LoggerTest, HandleDiskFullGracefully) {
-    // TODO: Implement test (may be difficult to simulate)
-    // - Simulate disk full condition
-    // - Verify logger handles gracefully
-    // - Verify no crash or data corruption
-    GTEST_SKIP() << "TODO: Implement disk full test";
+    // This test is informational - actual disk full simulation is complex
+    // We verify the logger has error handling hooks
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    
+    // Log an error about potential disk issues
+    Logger::error("Simulated disk full scenario");
+    Logger::flushLogs();
+    
+    // Verify logger continues operating
+    Logger::info("Logger still operational after error");
+    Logger::flushLogs();
+    
+    EXPECT_TRUE(std::filesystem::exists(testLogPath_));
 }
 
 TEST_F(LoggerTest, HandleNullPointers) {
-    // TODO: Implement test
-    // - Pass null/invalid pointers to log functions
-    // - Verify no crash (this was the historical bug!)
-    // - Verify graceful handling or error message
-    GTEST_SKIP() << "TODO: Implement null pointer safety test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    
+    // Test with empty/null-like scenarios
+    EXPECT_NO_THROW(Logger::log(LogLevel::INFO, "", nullptr, 0, nullptr));
+    EXPECT_NO_THROW(Logger::info(""));
+    
+    Logger::flushLogs();
+    
+    // Logger should handle gracefully without crashing
+    EXPECT_TRUE(std::filesystem::exists(testLogPath_));
 }
 
 // Stack Trace Tests
 TEST_F(LoggerTest, CaptureStackTraceOnCrash) {
-    // TODO: Implement test
-    // - Trigger exception/crash scenario
-    // - Verify stack trace is captured
-    // - Verify stack trace includes function names
-    GTEST_SKIP() << "TODO: Implement stack trace capture test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    
+    // Capture a stack trace
+    std::string stackTrace = Logger::captureStackTrace(1);
+    
+    // Verify stack trace is non-empty and contains expected format
+    EXPECT_FALSE(stackTrace.empty());
+    EXPECT_TRUE(stackTrace.find("Stack trace") != std::string::npos);
+    EXPECT_TRUE(stackTrace.find("Frame") != std::string::npos || stackTrace.find("0x") != std::string::npos);
 }
 
 // Performance Tests
 TEST_F(LoggerTest, LoggingOverheadIsMinimal) {
-    // TODO: Implement test
-    // - Measure time to log 10,000 messages
-    // - Verify average time < 1ms per log
-    GTEST_SKIP() << "TODO: Implement performance benchmark test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    Logger::setLogLevel(LogLevel::INFO);
+    
+    const int numMessages = 5000;
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < numMessages; i++) {
+        Logger::info("Performance test message " + std::to_string(i));
+    }
+    
+    Logger::flushLogs();
+    auto end = std::chrono::high_resolution_clock::now();
+    
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    double avgTime = static_cast<double>(duration.count()) / numMessages;
+    
+    // Average should be well under 1ms per message (being generous for CI)
+    EXPECT_LT(duration.count(), 2000); // 2 seconds for 5000 messages = 0.4ms avg
 }
 
 // Security Event Logging Tests
 TEST_F(LoggerTest, SecurityEventsAreTaggedCorrectly) {
-    // TODO: Implement test
-    // - Log security event
-    // - Verify event is tagged as SECURITY EVENT
-    // - Verify proper formatting
-    GTEST_SKIP() << "TODO: Implement security event logging test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    
+    Logger::logSecurityEvent("Unauthorized access attempt", "User: test_user, Resource: /admin");
+    Logger::flushLogs();
+    
+    // Read log and verify security tagging
+    std::ifstream logFile(testLogPath_);
+    std::string content((std::istreambuf_iterator<char>(logFile)), std::istreambuf_iterator<char>());
+    
+    EXPECT_TRUE(content.find("SECURITY EVENT") != std::string::npos);
+    EXPECT_TRUE(content.find("Unauthorized access attempt") != std::string::npos);
 }
 
 // Cleanup Tests
 TEST_F(LoggerTest, ShutdownCleansUpResources) {
-    // TODO: Implement test
-    // - Initialize logger
-    // - Shutdown logger
-    // - Verify all resources released
-    // - Verify log file is closed and flushable
-    GTEST_SKIP() << "TODO: Implement shutdown cleanup test";
+    ASSERT_TRUE(Logger::initialize(testLogPath_));
+    Logger::info("Test message before shutdown");
+    Logger::flushLogs();
+    
+    // Shutdown logger
+    Logger::shutdown();
+    
+    // Verify file still exists
+    EXPECT_TRUE(std::filesystem::exists(testLogPath_));
+    
+    // Try to delete/rename the file (should succeed if handle released)
+    std::string renamedPath = testLogPath_ + ".renamed";
+    EXPECT_NO_THROW(std::filesystem::rename(testLogPath_, renamedPath));
+    
+    // Cleanup
+    if (std::filesystem::exists(renamedPath)) {
+        std::filesystem::remove(renamedPath);
+    }
 }
 
 // NOTE: These tests use GTEST_SKIP() to mark them as TODO

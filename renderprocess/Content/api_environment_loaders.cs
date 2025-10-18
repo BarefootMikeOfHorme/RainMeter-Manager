@@ -1,116 +1,3 @@
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Linq;
-
-namespace RenderProcess.Content;
-
-/// <summary>
-/// Dynamic environment loader for wallpapers, widgets, and live backgrounds
-/// Features:
-/// - Time-based themes (day/night cycles)
-/// - Weather-reactive backgrounds
-/// - Animated wallpapers
-/// - Particle systems
-/// - Shader effects
-/// - Multi-monitor support
-/// </summary>
-public class DynamicEnvironmentLoader
-{
-    private readonly ILogger<DynamicEnvironmentLoader> _logger;
-    private readonly WebContentLoader _webLoader;
-    private readonly APIContentLoader _apiLoader;
-
-    public DynamicEnvironmentLoader(
-        ILogger<DynamicEnvironmentLoader> logger,
-        WebContentLoader webLoader,
-        APIContentLoader apiLoader)
-    {
-        _logger = logger;
-        _webLoader = webLoader;
-        _apiLoader = apiLoader;
-    }
-
-    public IReadOnlyList<DynamicEnvironment> GetAvailableEnvironments()
-    {
-        return new List<DynamicEnvironment>
-        {
-            // ====================
-            // TIME-BASED ENVIRONMENTS
-            // ====================
-            
-            new DynamicEnvironment
-            {
-                Id = "day_night_cycle",
-                Name = "Day/Night Cycle",
-                Description = "Automatically changes based on time of day",
-                Type = EnvironmentType.TimeBased,
-                Category = "Nature",
-                UpdateInterval = TimeSpan.FromMinutes(15),
-                RequiresInternet = false,
-                Generator = GenerateDayNightCycle
-            },
-            
-            new DynamicEnvironment
-            {
-                Id = "season_cycle",
-                Name = "Seasonal Themes",
-                Description = "Changes with the seasons",
-                Type = EnvironmentType.TimeBased,
-                Category = "Nature",
-                UpdateInterval = TimeSpan.FromHours(24),
-                RequiresInternet = false,
-                Generator = GenerateSeasonalTheme
-            },
-            
-            // ====================
-            // WEATHER-REACTIVE
-            // ====================
-            
-            new DynamicEnvironment
-            {
-                Id = "weather_live",
-                Name = "Live Weather Background",
-                Description = "Reflects current weather conditions",
-                Type = EnvironmentType.WeatherReactive,
-                Category = "Weather",
-                UpdateInterval = TimeSpan.FromMinutes(30),
-                RequiresInternet = true,
-                Generator = GenerateWeatherBackground
-            },
-            
-            new DynamicEnvironment
-            {
-                Id = "weather_particles",
-                Name = "Weather Particle Effects",
-                Description = "Rain, snow, or sunshine particles",
-                Type = EnvironmentType.Animated,
-                Category = "Weather",
-                UpdateInterval = TimeSpan.FromMinutes(30),
-                RequiresInternet = true,
-                Generator = GenerateWeatherParticles
-            },
-            
-            // ====================
-            // SPACE & ASTRONOMY
-            // ====================
-            
-            new DynamicEnvironment
-            {
-                Id = "nasa_apod",
-                Name = "NASA Picture of the Day",
-                Description = "Daily space imagery",
-                Type = EnvironmentType.DataDriven,
-                Category = "Space",
-                UpdateInterval = TimeSpan.FromHours(24),
-                RequiresInternet = true,
-                Generator = GenerateNASABackground
-            },
-            
             new DynamicEnvironment
             {
                 Id = "starfield",
@@ -859,10 +746,19 @@ public enum EnvironmentType
     DataDriven,
     Animated,
     Interactive
-}
+}using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
+
+namespace RenderProcess.Content;
 
 /// <summary>
-/// API content loader for dynamic data sources
+/// Enhanced API content loader for dynamic data sources
 /// Features:
 /// - Multiple API protocols (REST, GraphQL, WebSocket)
 /// - Authentication support (API key, OAuth, Bearer token)
@@ -871,9 +767,9 @@ public enum EnvironmentType
 /// - Retry logic
 /// - Data transformation
 /// </summary>
-public class APIContentLoader
+public class EnhancedAPIContentLoader
 {
-    private readonly ILogger<APIContentLoader> _logger;
+    private readonly ILogger<EnhancedAPIContentLoader> _logger;
     private readonly HttpClient _http;
     private readonly Dictionary<string, (DateTime timestamp, string data)> _cache;
 
@@ -881,7 +777,7 @@ public class APIContentLoader
     public int MaxRetries { get; set; } = 3;
     public int TimeoutSeconds { get; set; } = 30;
 
-    public APIContentLoader(ILogger<APIContentLoader> logger)
+    public EnhancedAPIContentLoader(ILogger<EnhancedAPIContentLoader> logger)
     {
         _logger = logger;
         _http = new HttpClient { Timeout = TimeSpan.FromSeconds(TimeoutSeconds) };
@@ -1090,3 +986,109 @@ public class APIResponse
     public bool FromCache { get; set; }
     public DateTime Timestamp { get; set; }
 }
+
+/// <summary>
+/// Dynamic environment loader for wallpapers, widgets, and live backgrounds
+/// Features:
+/// - Time-based themes (day/night cycles)
+/// - Weather-reactive backgrounds
+/// - Animated wallpapers
+/// - Particle systems
+/// - Shader effects
+/// - Multi-monitor support
+/// </summary>
+public class DynamicEnvironmentLoader
+{
+    private readonly ILogger<DynamicEnvironmentLoader> _logger;
+    private readonly EnhancedWebContentLoader _webLoader;
+    private readonly EnhancedAPIContentLoader _apiLoader;
+
+    public DynamicEnvironmentLoader(
+        ILogger<DynamicEnvironmentLoader> logger,
+        EnhancedWebContentLoader webLoader,
+        EnhancedAPIContentLoader apiLoader)
+    {
+        _logger = logger;
+        _webLoader = webLoader;
+        _apiLoader = apiLoader;
+    }
+
+    public IReadOnlyList<DynamicEnvironment> GetAvailableEnvironments()
+    {
+        return new List<DynamicEnvironment>
+        {
+            // ====================
+            // TIME-BASED ENVIRONMENTS
+            // ====================
+            
+            new DynamicEnvironment
+            {
+                Id = "day_night_cycle",
+                Name = "Day/Night Cycle",
+                Description = "Automatically changes based on time of day",
+                Type = EnvironmentType.TimeBased,
+                Category = "Nature",
+                UpdateInterval = TimeSpan.FromMinutes(15),
+                RequiresInternet = false,
+                Generator = GenerateDayNightCycle
+            },
+            
+            new DynamicEnvironment
+            {
+                Id = "season_cycle",
+                Name = "Seasonal Themes",
+                Description = "Changes with the seasons",
+                Type = EnvironmentType.TimeBased,
+                Category = "Nature",
+                UpdateInterval = TimeSpan.FromHours(24),
+                RequiresInternet = false,
+                Generator = GenerateSeasonalTheme
+            },
+            
+            // ====================
+            // WEATHER-REACTIVE
+            // ====================
+            
+            new DynamicEnvironment
+            {
+                Id = "weather_live",
+                Name = "Live Weather Background",
+                Description = "Reflects current weather conditions",
+                Type = EnvironmentType.WeatherReactive,
+                Category = "Weather",
+                UpdateInterval = TimeSpan.FromMinutes(30),
+                RequiresInternet = true,
+                Generator = GenerateWeatherBackground
+            },
+            
+            new DynamicEnvironment
+            {
+                Id = "weather_particles",
+                Name = "Weather Particle Effects",
+                Description = "Rain, snow, or sunshine particles",
+                Type = EnvironmentType.Animated,
+                Category = "Weather",
+                UpdateInterval = TimeSpan.FromMinutes(30),
+                RequiresInternet = true,
+                Generator = GenerateWeatherParticles
+            },
+            
+            // ====================
+            // SPACE & ASTRONOMY
+            // ====================
+            
+            new DynamicEnvironment
+            {
+                Id = "nasa_apod",
+                Name = "NASA Picture of the Day",
+                Description = "Daily space imagery",
+                Type = EnvironmentType.DataDriven,
+                Category = "Space",
+                UpdateInterval = TimeSpan.FromHours(24),
+                RequiresInternet = true,
+                Generator = GenerateNASABackground
+            },
+            
+            new DynamicEnvironment
+            {
+                

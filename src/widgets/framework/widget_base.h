@@ -4,16 +4,20 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 #include <windows.h>
 #include <d2d1.h>
+#include "../../core/system_monitor.h"
 
 namespace RainmeterManager {
 namespace Widgets {
 
+// Type alias for convenience
+using SystemMonitor = Core::ISystemMonitor;
+
 // Forward declarations
 class WidgetRenderer;
-class WidgetConfig;
-class SystemMonitor;
+struct WidgetConfig;
 
 /**
  * @brief Base interface for all widgets
@@ -44,6 +48,16 @@ public:
     virtual std::wstring GetDescription() const = 0;
     virtual bool IsVisible() const = 0;
     virtual void SetVisible(bool visible) = 0;
+    
+    // Position and size
+    virtual void SetPosition(int x, int y) = 0;
+    virtual void GetPosition(int& x, int& y) const = 0;
+    virtual void SetSize(UINT width, UINT height) = 0;
+    virtual void GetSize(UINT& width, UINT& height) const = 0;
+    
+    // System monitor
+    virtual void SetSystemMonitor(std::shared_ptr<SystemMonitor> monitor) = 0;
+    virtual std::shared_ptr<SystemMonitor> GetSystemMonitor() const = 0;
 };
 
 /**

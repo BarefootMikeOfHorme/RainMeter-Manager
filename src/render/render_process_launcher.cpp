@@ -539,8 +539,8 @@ int RenderProcessLauncher::CalculateRestartDelay() const {
     }
     
     // Exponential backoff: delay * 2^(attempts)
-    int delay = config_.restartDelayMs * (1 << std::min(consecutiveRestarts_, 5));
-    return std::min(delay, config_.maxRestartDelayMs);
+    int delay = config_.restartDelayMs * (1 << (std::min)(consecutiveRestarts_, 5));
+    return (std::min)(delay, config_.maxRestartDelayMs);
 }
 
 // Cleanup process resources
@@ -711,7 +711,7 @@ bool RenderProcessLauncher::ReduceTokenPrivileges(HANDLE processHandle) {
     }
     
     // List of privileges to remove (typically not needed by render process)
-    const char* privilegesToRemove[] = {
+    LPCWSTR privilegesToRemove[] = {
         SE_DEBUG_NAME,              // Debug other processes
         SE_TCB_NAME,                // Act as OS
         SE_SECURITY_NAME,           // Manage auditing
@@ -731,9 +731,9 @@ bool RenderProcessLauncher::ReduceTokenPrivileges(HANDLE processHandle) {
     
     bool anySuccess = false;
     
-    for (const char* privilege : privilegesToRemove) {
+    for (LPCWSTR privilege : privilegesToRemove) {
         LUID luid;
-        if (LookupPrivilegeValueA(nullptr, privilege, &luid)) {
+        if (LookupPrivilegeValueW(nullptr, privilege, &luid)) {
             TOKEN_PRIVILEGES tp = {};
             tp.PrivilegeCount = 1;
             tp.Privileges[0].Luid = luid;
@@ -783,13 +783,13 @@ bool RenderProcessLauncher::ApplyNetworkRestrictions(HANDLE processHandle) {
         case NetworkPolicy::LocalhostOnly:
             LOG_INFO("Network policy: Localhost only (IPC permitted)");
             LOG_INFO("Recommend: Configure Windows Firewall to block outbound for PID " + 
-                    std::to_string(GetProcessId(processHandle)));
+                    std::to_string(::GetProcessId(processHandle)));
             break;
             
         case NetworkPolicy::Blocked:
             LOG_INFO("Network policy: Fully blocked");
             LOG_INFO("Recommend: Configure Windows Firewall to block all network for PID " + 
-                    std::to_string(GetProcessId(processHandle)));
+                    std::to_string(::GetProcessId(processHandle)));
             break;
             
         case NetworkPolicy::UserPrompt:
