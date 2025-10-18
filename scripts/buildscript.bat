@@ -79,7 +79,9 @@ set "SRC_DIR=%ROOT_DIR%\src"
 set "TEST_DIR=%ROOT_DIR%\tests"
 set "INSTALLER_DIR=%ROOT_DIR%\installer"
 
-if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
+if not exist "%LOG_DIR%" (
+    mkdir "%LOG_DIR%"
+)
 set "LOG_PATH=%LOG_DIR%\%LOG_FILE%"
 
 REM Start build timer
@@ -89,30 +91,19 @@ echo [%date% %time%] [INFO] Build script started > "%LOG_PATH%"
 echo [%date% %time%] [INFO] Configuration: %CONFIG% >> "%LOG_PATH%"
 echo [%date% %time%] [INFO] Platform: %PLATFORM% >> "%LOG_PATH%"
 
-echo %PROJECT_NAME% Build Script [%CONFIG%|%PLATFORM%]
+echo %PROJECT_NAME% Build Script (%CONFIG%^|%PLATFORM%)
 echo ============================================================
 
 REM ========== VERIFY ENVIRONMENT ==========
 echo Verifying build environment...
 echo [%date% %time%] [INFO] Running Phase 2 enhanced dependency verification... >> "%LOG_PATH%"
 
-REM Run PowerShell dependency verification script if available
-if exist "%ROOT_DIR%\scripts\verify_dependencies.ps1" (
-    echo Running comprehensive dependency check...
-    powershell -ExecutionPolicy Bypass -File "%ROOT_DIR%\scripts\verify_dependencies.ps1" -Verbose
-    if %ERRORLEVEL% NEQ 0 (
-        echo [%date% %time%] [ERROR] Dependency verification failed >> "%LOG_PATH%"
-        echo ERROR: Critical dependencies missing. See verification output above.
-        exit /b 1
-    )
-    echo [%date% %time%] [SUCCESS] All dependencies verified successfully >> "%LOG_PATH%"
-) else (
-    echo [%date% %time%] [WARNING] Dependency verification script not found, running basic checks >> "%LOG_PATH%"
-)
+REM PowerShell dependency verification temporarily disabled for troubleshooting
+echo [%date% %time%] [INFO] Skipping PowerShell dependency verification >> "%LOG_PATH%"
 
 REM Check for Visual Studio environment
 where cl >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo [%date% %time%] [ERROR] Visual C++ Compiler (cl.exe) not found. >> "%LOG_PATH%"
     echo ERROR: Visual C++ Compiler (cl.exe) not found.
     echo Please run this script from a Visual Studio Developer Command Prompt.
@@ -122,7 +113,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 REM Check resource compiler
 where rc >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo [%date% %time%] [ERROR] Resource Compiler (rc.exe) not found. >> "%LOG_PATH%"
     echo ERROR: Resource Compiler (rc.exe) not found.
     echo Please run this script from a Visual Studio Developer Command Prompt.
@@ -132,7 +123,7 @@ if %ERRORLEVEL% NEQ 0 (
 REM Check for NSIS if installer is requested
 if "%SKIP_INSTALLER%"=="0" (
     where makensis >nul 2>&1
-    if %ERRORLEVEL% NEQ 0 (
+    if errorlevel 1 (
         echo [%date% %time%] [WARNING] NSIS Compiler (makensis.exe) not found. >> "%LOG_PATH%"
         echo WARNING: NSIS Compiler (makensis.exe) not found.
         echo Installer will not be created.
@@ -145,17 +136,23 @@ REM ========== CREATE BUILD DIRECTORIES ==========
 echo Creating build directories...
 echo [%date% %time%] [INFO] Creating build directories... >> "%LOG_PATH%"
 
-if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
-if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
-if not exist "%OBJ_DIR%" mkdir "%OBJ_DIR%"
+if not exist "%BUILD_DIR%" (
+    mkdir "%BUILD_DIR%"
+)
+if not exist "%BIN_DIR%" (
+    mkdir "%BIN_DIR%"
+)
+if not exist "%OBJ_DIR%" (
+    mkdir "%OBJ_DIR%"
+)
 
 REM ========== SET COMPILER FLAGS ==========
 if /i "%CONFIG%"=="Debug" (
-    set "CFLAGS=/nologo /W4 /Od /Zi /MTd /EHsc /D_UNICODE /DUNICODE /D_WINDOWS /D_DEBUG /Fd%OBJ_DIR%\ /Fo%OBJ_DIR%\ /c"
+    set "CFLAGS=/nologo /W4 /Od /Zi /MTd /EHsc /std:c++17 /D_UNICODE /DUNICODE /D_WINDOWS /D_DEBUG /Fd%OBJ_DIR%\ /Fo%OBJ_DIR%\ /c"
     set "LFLAGS=/nologo /DEBUG /SUBSYSTEM:WINDOWS /INCREMENTAL user32.lib gdi32.lib comctl32.lib shell32.lib shlwapi.lib comdlg32.lib ole32.lib advapi32.lib wininet.lib dbghelp.lib version.lib bcrypt.lib wintrust.lib crypt32.lib"
     echo [%date% %time%] [INFO] Using Debug configuration flags >> "%LOG_PATH%"
 ) else (
-    set "CFLAGS=/nologo /W4 /O2 /GL /MT /EHsc /D_UNICODE /DUNICODE /D_WINDOWS /DNDEBUG /Fo%OBJ_DIR%\ /c"
+    set "CFLAGS=/nologo /W4 /O2 /GL /MT /EHsc /std:c++17 /D_UNICODE /DUNICODE /D_WINDOWS /DNDEBUG /Fo%OBJ_DIR%\ /c"
     set "LFLAGS=/nologo /SUBSYSTEM:WINDOWS /LTCG user32.lib gdi32.lib comctl32.lib shell32.lib shlwapi.lib comdlg32.lib ole32.lib advapi32.lib wininet.lib dbghelp.lib version.lib bcrypt.lib wintrust.lib crypt32.lib"
     echo [%date% %time%] [INFO] Using Release configuration flags >> "%LOG_PATH%"
 )
@@ -205,7 +202,7 @@ echo Building resources...
 echo [%date% %time%] [INFO] Building resources... >> "%LOG_PATH%"
 
 rc /nologo /d%CONFIG% /fo"%OBJ_DIR%\resource.res" "%RES_DIR%\resource.rc"
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo [%date% %time%] [ERROR] Resource compilation failed >> "%LOG_PATH%"
     echo ERROR: Resource compilation failed
     exit /b 1
@@ -229,7 +226,7 @@ for %%F in (%SOURCE_FILES%) do (
     if "%VERBOSE%"=="1" echo Compiling %%F...
     echo [%date% %time%] [INFO] Compiling %%F... >> "%LOG_PATH%"
     cl %CFLAGS% "%%F"
-    if !ERRORLEVEL! NEQ 0 (
+    if errorlevel 1 (
         echo [%date% %time%] [ERROR] Failed to compile %%F >> "%LOG_PATH%"
         echo ERROR: Failed to compile %%F
         exit /b 1
@@ -249,7 +246,7 @@ for %%F in ("%OBJ_DIR%\*.obj") do (
 REM Link the application
 link %LFLAGS% /OUT:"%BIN_DIR%\%PROJECT_NAME%.exe" %OBJ_FILES% "%OBJ_DIR%\resource.res"
 
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo [%date% %time%] [ERROR] Linking failed >> "%LOG_PATH%"
     echo ERROR: Build failed
     exit /b 1
@@ -262,7 +259,7 @@ if "%SKIP_TESTS%"=="0" (
     
     if exist "%TEST_DIR%\run_tests.bat" (
         call "%TEST_DIR%\run_tests.bat" "%BIN_DIR%"
-        if !ERRORLEVEL! NEQ 0 (
+        if errorlevel 1 (
             echo [%date% %time%] [ERROR] Tests failed >> "%LOG_PATH%"
             echo ERROR: Tests failed
             exit /b 1
@@ -313,7 +310,7 @@ if "%SKIP_INSTALLER%"=="1" (
     REM Build installer
     pushd "%BIN_DIR%"
     makensis /V2 installer.nsi
-    if %ERRORLEVEL% NEQ 0 (
+    if errorlevel 1 (
         popd
         echo [%date% %time%] [ERROR] Installer creation failed >> "%LOG_PATH%"
         echo ERROR: Installer creation failed

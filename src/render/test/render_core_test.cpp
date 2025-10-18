@@ -6,7 +6,7 @@
 #include <chrono>
 
 using namespace RainmeterManager::Render;
-using namespace RainmeterManager::Core;
+// Note: Don't use "using namespace Core" to avoid Logger/LogLevel ambiguity with global ::Logger
 
 namespace RainmeterManager::Test {
 

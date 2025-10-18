@@ -18,8 +18,14 @@ struct ThemeColors {
 
 inline int DpiScale(HWND hwnd, int value) {
     UINT dpi = 96;
-    if (hwnd && GetDpiForWindow) {
-        dpi = GetDpiForWindow(hwnd);
+    if (hwnd) {
+        // GetDpiForWindow is available on Windows 10 1607+
+        typedef UINT (WINAPI *GetDpiForWindowFunc)(HWND);
+        static GetDpiForWindowFunc pGetDpiForWindow = 
+            (GetDpiForWindowFunc)GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetDpiForWindow");
+        if (pGetDpiForWindow) {
+            dpi = pGetDpiForWindow(hwnd);
+        }
     }
     return MulDiv(value, dpi, 96);
 }

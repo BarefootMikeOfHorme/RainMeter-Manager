@@ -2,17 +2,19 @@
 
 #include "../interfaces/render_command.h"
 #include "../interfaces/irender_backend_proxy.h"
+#include "../render_process_launcher.h"
 #include "../ipc/render_ipc_bridge.h"
-#include "../../core/logger.h"
+#include "monitor_manager.h"
 #include "../../core/service_locator.h"
 #include "../../config/config_manager.h"
 #include <memory>
 #include <unordered_map>
 #include <vector>
-#include <mutex>
+#include <future>
 #include <thread>
 #include <atomic>
-#include <queue>
+#include <chrono>
+#include <shared_mutex>
 #include <functional>
 #include <future>
 

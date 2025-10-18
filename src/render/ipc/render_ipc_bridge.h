@@ -2,6 +2,7 @@
 
 #include "../interfaces/render_command.h"
 #include "../../core/logger.h"
+#include "../../core/logger_adapter.h"
 #include <windows.h>
 #include <memory>
 #include <functional>
@@ -242,6 +243,9 @@ namespace RainmeterManager::Render {
         ProcessExitedCallback processExitedCallback_;
         MessageReceivedCallback messageReceivedCallback_;
 
+        // Logging
+        Core::Logger& logger_;
+        
         // Configuration
         uint32_t defaultTimeoutMs_{5000};
         mutable std::string lastError_;

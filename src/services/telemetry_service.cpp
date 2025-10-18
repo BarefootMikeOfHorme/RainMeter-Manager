@@ -147,13 +147,14 @@ void TelemetryService::TrackError(
     const std::string& component,
     int severity
 ) {
-    TrackErrorWithContext(errorMessage, errorCode, "", {}, severity);
+    TrackErrorWithContext(errorMessage, errorCode, component, "", {}, severity);
 }
 
 // Track error with context
 void TelemetryService::TrackErrorWithContext(
     const std::string& errorMessage,
     const std::string& errorCode,
+    const std::string& component,
     const std::string& stackTrace,
     const std::unordered_map<std::string, std::string>& context,
     int severity
@@ -499,16 +500,16 @@ void TelemetryService::SaveMetricToLocalStorage(const PerformanceMetric& metric)
 std::string TelemetryService::SerializeEventToJson(const TelemetryEvent& event) const {
     std::ostringstream json;
     json << "{";
-    json << R"("eventId":"" << event.eventId << "",";
-    json << R"("eventName":"" << event.eventName << "",";
-    json << R"("type":)" << static_cast<int>(event.type) << ",";
-    json << R"("privacyLevel":)" << static_cast<int>(event.privacyLevel) << ",";
-    json << R"("timestamp":)" << std::chrono::system_clock::to_time_t(event.timestamp) << ",";
-    json << R"("sessionId":"" << event.sessionId << "",";
-    json << R"("userId":"" << event.userId << """;
+    json << "\"eventId\":\"" << event.eventId << "\",";
+    json << "\"eventName\":\"" << event.eventName << "\",";
+    json << "\"type\":" << static_cast<int>(event.type) << ",";
+    json << "\"privacyLevel\":" << static_cast<int>(event.privacyLevel) << ",";
+    json << "\"timestamp\":" << std::chrono::system_clock::to_time_t(event.timestamp) << ",";
+    json << "\"sessionId\":\"" << event.sessionId << "\",";
+    json << "\"userId\":\"" << event.userId << "\"";
     
     if (!event.properties.empty()) {
-        json << R"(,"properties":{";
+        json << ",\"properties\":{";
         bool first = true;
         for (const auto& [key, value] : event.properties) {
             if (!first) json << ",";
@@ -519,7 +520,7 @@ std::string TelemetryService::SerializeEventToJson(const TelemetryEvent& event) 
     }
     
     if (!event.measurements.empty()) {
-        json << R"(,"measurements":{";
+        json << ",\"measurements\":{";
         bool first = true;
         for (const auto& [key, value] : event.measurements) {
             if (!first) json << ",";
@@ -536,19 +537,19 @@ std::string TelemetryService::SerializeEventToJson(const TelemetryEvent& event) 
 std::string TelemetryService::SerializeErrorToJson(const ErrorTelemetry& error) const {
     std::ostringstream json;
     json << "{";
-    json << R"("errorId":"" << error.errorId << "",";
-    json << R"("errorMessage":"" << error.errorMessage << "",";
-    json << R"("errorCode":"" << error.errorCode << "",";
-    json << R"("component":"" << error.component << "",";
-    json << R"("severity":)" << error.severity << ",";
-    json << R"("timestamp":)" << std::chrono::system_clock::to_time_t(error.timestamp);
+    json << "\"errorId\":\"" << error.errorId << "\",";
+    json << "\"errorMessage\":\"" << error.errorMessage << "\",";
+    json << "\"errorCode\":\"" << error.errorCode << "\",";
+    json << "\"component\":\"" << error.component << "\",";
+    json << "\"severity\":" << error.severity << ",";
+    json << "\"timestamp\":" << std::chrono::system_clock::to_time_t(error.timestamp);
     
     if (!error.stackTrace.empty()) {
-        json << R"(,"stackTrace":"" << error.stackTrace << "\"";
+        json << ",\"stackTrace\":\"" << error.stackTrace << "\"";
     }
     
     if (!error.context.empty()) {
-        json << R"(,"context":{";
+        json << ",\"context\":{";
         bool first = true;
         for (const auto& [key, value] : error.context) {
             if (!first) json << ",";
@@ -565,13 +566,13 @@ std::string TelemetryService::SerializeErrorToJson(const ErrorTelemetry& error) 
 std::string TelemetryService::SerializeMetricToJson(const PerformanceMetric& metric) const {
     std::ostringstream json;
     json << "{";
-    json << R"("metricName":"" << metric.metricName << "",";
-    json << R"("type":)" << static_cast<int>(metric.type) << ",";
-    json << R"("value":)" << metric.value << ",";
-    json << R"("timestamp":)" << std::chrono::system_clock::to_time_t(metric.timestamp);
+    json << "\"metricName\":\"" << metric.metricName << "\",";
+    json << "\"type\":" << static_cast<int>(metric.type) << ",";
+    json << "\"value\":" << metric.value << ",";
+    json << "\"timestamp\":" << std::chrono::system_clock::to_time_t(metric.timestamp);
     
     if (!metric.tags.empty()) {
-        json << R"(,"tags":{";
+        json << ",\"tags\":{";
         bool first = true;
         for (const auto& [key, value] : metric.tags) {
             if (!first) json << ",";

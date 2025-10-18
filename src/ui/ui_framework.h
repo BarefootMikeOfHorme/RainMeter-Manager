@@ -7,7 +7,7 @@
 #include <vector>
 #include <functional>
 #include <memory>
-#include "logger.h"
+#include "../core/logger.h"
 #include <d2d1.h>
 #include <dwrite.h>
 #include <wincodec.h>

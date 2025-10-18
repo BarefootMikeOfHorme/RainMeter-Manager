@@ -139,6 +139,7 @@ public:
     void TrackErrorWithContext(
         const std::string& errorMessage,
         const std::string& errorCode,
+        const std::string& component,
         const std::string& stackTrace,
         const std::unordered_map<std::string, std::string>& context,
         int severity = 2

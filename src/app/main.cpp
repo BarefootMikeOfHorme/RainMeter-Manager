@@ -7,6 +7,7 @@
 #include <dbghelp.h>
 #include <shellapi.h>
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -197,11 +198,10 @@ int WINAPI wWinMain(
         //=====================================================================
         
         // Initialize enterprise logging system first
-        LogRotationConfig logConfig = {
-            .maxFileSize = 10 * 1024 * 1024,  // 10MB
-            .maxFiles = 5,
-            .enableRotation = true
-        };
+        LogRotationConfig logConfig;
+        logConfig.maxFileSize = 10 * 1024 * 1024;  // 10MB
+        logConfig.maxFiles = 5;
+        logConfig.enableRotation = true;
         
         std::string logPath = "logs/RainmeterManager.log";
         if (!Logger::initialize(logPath, logConfig)) {

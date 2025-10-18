@@ -146,10 +146,10 @@ if not exist "%OBJ_DIR%" mkdir "%OBJ_DIR%"
 
 REM ========== SET COMPILER FLAGS ==========
 if /i "%CONFIG%"=="Debug" (
-    set "CFLAGS=/nologo /W4 /Od /Zi /MTd /EHsc /D_UNICODE /DUNICODE /D_WINDOWS /D_DEBUG /Fd%OBJ_DIR%\ /Fo%OBJ_DIR%\ /c"
+    set "CFLAGS=/nologo /W4 /std:c++17 /Od /Zi /MTd /EHsc /D_UNICODE /DUNICODE /D_WINDOWS /D_DEBUG /I"%SRC_DIR%" /Fd%OBJ_DIR%\ /Fo%OBJ_DIR%\ /c"
     set "LFLAGS=/nologo /DEBUG /SUBSYSTEM:WINDOWS /INCREMENTAL user32.lib gdi32.lib comctl32.lib shell32.lib shlwapi.lib comdlg32.lib ole32.lib advapi32.lib wininet.lib dbghelp.lib version.lib bcrypt.lib wintrust.lib crypt32.lib"
 ) else (
-    set "CFLAGS=/nologo /W4 /O2 /GL /MT /EHsc /D_UNICODE /DUNICODE /D_WINDOWS /DNDEBUG /Fo%OBJ_DIR%\ /c"
+    set "CFLAGS=/nologo /W4 /std:c++17 /O2 /GL /MT /EHsc /D_UNICODE /DUNICODE /D_WINDOWS /DNDEBUG /I"%SRC_DIR%" /Fo%OBJ_DIR%\ /c"
     set "LFLAGS=/nologo /SUBSYSTEM:WINDOWS /LTCG user32.lib gdi32.lib comctl32.lib shell32.lib shlwapi.lib comdlg32.lib ole32.lib advapi32.lib wininet.lib dbghelp.lib version.lib bcrypt.lib wintrust.lib crypt32.lib"
 )
 
