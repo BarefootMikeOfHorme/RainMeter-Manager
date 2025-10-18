@@ -5,6 +5,13 @@
 *.ps1 eol=crlf
 *.bat eol=crlf
 
+# Python files use LF (PEP 8 standard)
+*.py eol=lf
+
+# Markdown and text files use LF
+*.md eol=lf
+*.txt eol=lf
+
 # Prefer C/C++-aware diffs
 *.c  diff=cpp
 *.cc diff=cpp

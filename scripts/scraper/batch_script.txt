@@ -1,0 +1,501 @@
+@echo off
+setlocal enabledelayedexpansion
+
+REM ========================================================================
+REM AXIOM Enhanced Setup and Run Script v2.0
+REM 
+REM New Features:
+REM - Health checks and diagnostics
+REM - Automatic recovery from interruptions
+REM - Resource monitoring
+REM - Enhanced error reporting
+REM - Progress indicators
+REM ========================================================================
+
+set "AXIOM_VERSION=2.0.0"
+set "SCRIPT_NAME=AXIOM Enhanced Scraper"
+set "LOG_DIR=logs"
+set "VENV_DIR=venv"
+set "CONFIG_FILE=rainmeterui_categories.json"
+set "DEFAULT_OUTPUT=scraped_data"
+set "DEFAULT_DELAY=1.0"
+set "DEFAULT_WORKERS=5"
+set "DEFAULT_BATCH=100"
+
+REM Create timestamp for logs
+for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
+set "TIMESTAMP=%datetime:~0,8%_%datetime:~8,6%"
+set "LOG_FILE=%LOG_DIR%\axiom_%TIMESTAMP%.log"
+
+REM ========== PARSE ARGUMENTS ==========
+set "OUTPUT_DIR=%DEFAULT_OUTPUT%"
+set "DELAY=%DEFAULT_DELAY%"
+set "WORKERS=%DEFAULT_WORKERS%"
+set "BATCH_SIZE=%DEFAULT_BATCH%"
+set "RESUME=0"
+set "VERBOSE=0"
+set "SKIP_CHECKS=0"
+set "DIAGNOSTIC=0"
+
+:parse_args
+if "%~1"=="" goto :args_done
+if /i "%~1"=="-h" goto :show_help
+if /i "%~1"=="--help" goto :show_help
+if /i "%~1"=="-o" set "OUTPUT_DIR=%~2" & shift & shift & goto :parse_args
+if /i "%~1"=="--output" set "OUTPUT_DIR=%~2" & shift & shift & goto :parse_args
+if /i "%~1"=="-d" set "DELAY=%~2" & shift & shift & goto :parse_args
+if /i "%~1"=="--delay" set "DELAY=%~2" & shift & shift & goto :parse_args
+if /i "%~1"=="-w" set "WORKERS=%~2" & shift & shift & goto :parse_args
+if /i "%~1"=="--workers" set "WORKERS=%~2" & shift & shift & goto :parse_args
+if /i "%~1"=="-b" set "BATCH_SIZE=%~2" & shift & shift & goto :parse_args
+if /i "%~1"=="--batch-size" set "BATCH_SIZE=%~2" & shift & shift & goto :parse_args
+if /i "%~1"=="--resume" set "RESUME=1" & shift & goto :parse_args
+if /i "%~1"=="-v" set "VERBOSE=1" & shift & goto :parse_args
+if /i "%~1"=="--verbose" set "VERBOSE=1" & shift & goto :parse_args
+if /i "%~1"=="--skip-checks" set "SKIP_CHECKS=1" & shift & goto :parse_args
+if /i "%~1"=="--diagnostic" set "DIAGNOSTIC=1" & shift & goto :parse_args
+if /i "%~1"=="--version" (
+    echo %SCRIPT_NAME% v%AXIOM_VERSION%
+    exit /b 0
+)
+echo Unknown option: %~1
+goto :show_help
+
+:args_done
+
+REM ========== SHOW HELP ==========
+:show_help
+echo.
+echo %SCRIPT_NAME% v%AXIOM_VERSION%
+echo ========================================================================
+echo.
+echo Usage: %~nx0 [options]
+echo.
+echo Options:
+echo   -h, --help              Show this help message
+echo   -o, --output DIR        Output directory (default: %DEFAULT_OUTPUT%)
+echo   -d, --delay SECONDS     Delay between requests (default: %DEFAULT_DELAY%)
+echo   -w, --workers NUM       Parallel workers (default: %DEFAULT_WORKERS%)
+echo   -b, --batch-size NUM    Batch size for downloads (default: %DEFAULT_BATCH%)
+echo   --resume                Resume interrupted scraping
+echo   -v, --verbose           Enable verbose output
+echo   --skip-checks           Skip environment checks (not recommended)
+echo   --diagnostic            Run diagnostic tests and exit
+echo   --version               Show version information
+echo.
+echo Examples:
+echo   %~nx0                                    Run with defaults
+echo   %~nx0 --output my_skins --workers 10    Custom settings
+echo   %~nx0 --resume                          Resume previous session
+echo   %~nx0 --diagnostic                      Check system health
+echo.
+exit /b 0
+
+REM ========== INITIALIZE ==========
+:init
+if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
+
+call :log "INFO" "=========================================="
+call :log "INFO" "%SCRIPT_NAME% v%AXIOM_VERSION%"
+call :log "INFO" "=========================================="
+call :log "INFO" "Starting at %date% %time%"
+
+REM Show ASCII banner
+echo.
+echo     ╔══════════════════════════════════════════╗
+echo     ║         AXIOM Enhanced v2.0              ║
+echo     ║  Automated eXtraction Index Operator     ║
+echo     ╚══════════════════════════════════════════╝
+echo.
+
+REM ========== DIAGNOSTIC MODE ==========
+if "%DIAGNOSTIC%"=="1" goto :run_diagnostics
+
+REM ========== SYSTEM CHECKS ==========
+if "%SKIP_CHECKS%"=="1" goto :skip_system_checks
+
+call :log "INFO" "Running system checks..."
+echo [1/5] Checking Python installation...
+
+python --version >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    call :log "ERROR" "Python not found"
+    echo [FAIL] Python is not installed or not in PATH
+    echo.
+    echo Please install Python 3.8+ from https://www.python.org/downloads/
+    echo Make sure to check "Add Python to PATH" during installation.
+    pause
+    exit /b 1
+)
+
+for /f "tokens=2" %%V in ('python --version 2^>^&1') do set "PY_VERSION=%%V"
+call :log "INFO" "Python version: %PY_VERSION%"
+echo [OK] Python %PY_VERSION% found
+
+echo [2/5] Checking pip...
+pip --version >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    call :log "ERROR" "pip not found"
+    echo [FAIL] pip is not available
+    pause
+    exit /b 1
+)
+echo [OK] pip available
+
+echo [3/5] Checking disk space...
+call :check_disk_space
+if %ERRORLEVEL% NEQ 0 (
+    call :log "WARN" "Low disk space detected"
+    echo [WARN] Low disk space - may affect downloads
+)
+
+echo [4/5] Checking internet connectivity...
+ping -n 1 8.8.8.8 >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    call :log "WARN" "Internet connectivity issue"
+    echo [WARN] Internet connectivity check failed
+)
+
+echo [5/5] Checking configuration file...
+if not exist "%CONFIG_FILE%" (
+    call :log "ERROR" "Config file not found: %CONFIG_FILE%"
+    echo [FAIL] Configuration file not found: %CONFIG_FILE%
+    pause
+    exit /b 1
+)
+
+python -c "import json; json.load(open('%CONFIG_FILE%'))" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    call :log "ERROR" "Invalid JSON in config file"
+    echo [FAIL] Configuration file has invalid JSON syntax
+    pause
+    exit /b 1
+)
+echo [OK] Configuration file valid
+
+call :log "INFO" "System checks passed"
+echo.
+
+:skip_system_checks
+
+REM ========== VIRTUAL ENVIRONMENT ==========
+call :log "INFO" "Setting up virtual environment..."
+echo Setting up Python virtual environment...
+
+if not exist "%VENV_DIR%" (
+    echo Creating virtual environment...
+    call :log "INFO" "Creating virtual environment"
+    
+    python -m venv "%VENV_DIR%"
+    if %ERRORLEVEL% NEQ 0 (
+        call :log "ERROR" "Failed to create venv"
+        echo [FAIL] Could not create virtual environment
+        pause
+        exit /b 1
+    )
+    echo [OK] Virtual environment created
+)
+
+call :log "INFO" "Activating virtual environment"
+call "%VENV_DIR%\Scripts\activate.bat"
+if %ERRORLEVEL% NEQ 0 (
+    call :log "ERROR" "Failed to activate venv"
+    echo [FAIL] Could not activate virtual environment
+    pause
+    exit /b 1
+)
+echo [OK] Virtual environment activated
+
+REM ========== DEPENDENCIES ==========
+call :log "INFO" "Installing dependencies..."
+echo Installing required packages...
+
+python -m pip install --quiet --upgrade pip
+if %ERRORLEVEL% NEQ 0 (
+    call :log "ERROR" "Failed to upgrade pip"
+    echo [FAIL] Could not upgrade pip
+    pause
+    exit /b 1
+)
+
+if not exist "requirements.txt" (
+    call :log "ERROR" "requirements.txt not found"
+    echo [FAIL] requirements.txt not found
+    pause
+    exit /b 1
+)
+
+echo This may take a few minutes...
+python -m pip install --quiet -r requirements.txt
+if %ERRORLEVEL% NEQ 0 (
+    call :log "ERROR" "Failed to install dependencies"
+    echo [FAIL] Could not install required packages
+    echo Please check your internet connection and try again
+    pause
+    exit /b 1
+)
+echo [OK] All dependencies installed
+
+REM ========== OUTPUT DIRECTORY ==========
+call :log "INFO" "Preparing output directory: %OUTPUT_DIR%"
+
+if not exist "%OUTPUT_DIR%" (
+    mkdir "%OUTPUT_DIR%"
+    call :log "INFO" "Created output directory"
+) else (
+    call :log "INFO" "Output directory exists"
+    
+    REM Check for resume data
+    if exist "%OUTPUT_DIR%\skins.db" (
+        if "%RESUME%"=="1" (
+            call :log "INFO" "Resume mode enabled"
+            echo [INFO] Resuming previous scraping session
+        ) else (
+            echo [WARN] Output directory contains previous data
+            echo Use --resume to continue or delete the directory to start fresh
+            set /p "CONTINUE=Continue anyway? (y/n): "
+            if /i not "!CONTINUE!"=="y" (
+                call :log "INFO" "User cancelled"
+                exit /b 0
+            )
+        )
+    )
+)
+
+REM ========== CONFIRMATION ==========
+echo.
+echo ========================================================================
+echo SCRAPING CONFIGURATION
+echo ========================================================================
+echo.
+echo Output directory:  %OUTPUT_DIR%
+echo Request delay:     %DELAY% seconds
+echo Download workers:  %WORKERS%
+echo Batch size:        %BATCH_SIZE%
+if "%RESUME%"=="1" echo Resume mode:       ENABLED
+if "%VERBOSE%"=="1" echo Verbose logging:   ENABLED
+echo.
+
+set /p "CONFIRM=Start scraping? (y/n): "
+if /i not "%CONFIRM%"=="y" (
+    call :log "INFO" "User cancelled"
+    echo Scraping cancelled
+    exit /b 0
+)
+
+REM ========== START SCRAPING ==========
+call :log "INFO" "Starting AXIOM scraper"
+echo.
+echo ========================================================================
+echo STARTING AXIOM SCRAPER
+echo ========================================================================
+echo.
+
+set "START_TIME=%time%"
+
+REM Build command
+set "CMD=python AXIOM.py --config "%CONFIG_FILE%" --output "%OUTPUT_DIR%" --delay %DELAY% --workers %WORKERS% --batch-size %BATCH_SIZE%"
+if "%VERBOSE%"=="1" set "CMD=%CMD% --verbose"
+
+call :log "INFO" "Executing: %CMD%"
+
+REM Run scraper
+%CMD%
+
+set "EXIT_CODE=%ERRORLEVEL%"
+set "END_TIME=%time%"
+
+call :log "INFO" "Scraper finished with exit code: %EXIT_CODE%"
+
+REM ========== RESULTS ==========
+echo.
+echo ========================================================================
+
+if %EXIT_CODE% EQU 0 (
+    call :log "INFO" "Scraping completed successfully"
+    echo SUCCESS - SCRAPING COMPLETED!
+    echo ========================================================================
+    echo.
+    echo Results saved to: %OUTPUT_DIR%
+    echo.
+    echo Check these files:
+    echo   - skins.db                   ^(Database with all metadata^)
+    echo   - complete_collection.json   ^(Full export^)
+    echo   - complete_collection.csv    ^(CSV export^)
+    echo   - scraping_summary.txt       ^(Summary report^)
+    echo   - downloads\                 ^(Downloaded packages^)
+    echo   - extracted_skins\           ^(Extracted skin files^)
+    echo.
+    
+    REM Show quick stats if database exists
+    if exist "%OUTPUT_DIR%\skins.db" (
+        echo Quick Statistics:
+        python -c "import sqlite3; conn = sqlite3.connect('%OUTPUT_DIR%/skins.db'); c = conn.cursor(); c.execute('SELECT COUNT(*) FROM skins'); print('  Total skins:', c.fetchone()[0]); c.execute('SELECT download_status, COUNT(*) FROM skins GROUP BY download_status'); [print(f'  {row[0]}: {row[1]}') for row in c.fetchall()]" 2>nul
+        echo.
+    )
+) else (
+    call :log "ERROR" "Scraping failed with exit code: %EXIT_CODE%"
+    echo FAILED - SCRAPING INTERRUPTED OR FAILED
+    echo ========================================================================
+    echo.
+    echo Exit code: %EXIT_CODE%
+    echo.
+    echo Check logs for details:
+    echo   - %LOG_FILE%
+    echo   - %OUTPUT_DIR%\axiom_scraper.log
+    echo.
+    if exist "%OUTPUT_DIR%\skins.db" (
+        echo You can resume by running: %~nx0 --resume
+        echo.
+    )
+)
+
+REM Calculate duration
+call :calculate_duration "%START_TIME%" "%END_TIME%"
+echo Total duration: %DURATION%
+echo.
+echo ========================================================================
+
+call :log "INFO" "Script completed in %DURATION%"
+
+REM Deactivate venv
+call "%VENV_DIR%\Scripts\deactivate.bat" 2>nul
+
+pause
+exit /b %EXIT_CODE%
+
+REM ========== DIAGNOSTIC MODE ==========
+:run_diagnostics
+echo.
+echo ========================================================================
+echo AXIOM DIAGNOSTIC MODE
+echo ========================================================================
+echo.
+
+call :log "INFO" "Running diagnostics"
+
+echo [TEST 1] Python Installation
+python --version
+if %ERRORLEVEL% NEQ 0 (
+    echo [FAIL] Python not found
+) else (
+    echo [PASS] Python available
+)
+echo.
+
+echo [TEST 2] Python Modules
+python -c "import sys; print('Python path:', sys.executable)"
+echo.
+
+echo [TEST 3] Required Modules
+set "MODULES=aiohttp beautifulsoup4 lxml rarfile py7zr sqlite3"
+for %%M in (%MODULES%) do (
+    python -c "import %%M" >nul 2>&1
+    if !ERRORLEVEL! NEQ 0 (
+        echo [MISS] %%M
+    ) else (
+        echo [OK] %%M
+    )
+)
+echo.
+
+echo [TEST 4] Configuration File
+if exist "%CONFIG_FILE%" (
+    python -c "import json; data=json.load(open('%CONFIG_FILE%')); print('[OK] Valid JSON'); print('Categories:', len(data.get('rainmeterui_categories', {}).get('primary_skin_categories', [])))"
+) else (
+    echo [FAIL] Config file not found
+)
+echo.
+
+echo [TEST 5] Disk Space
+call :check_disk_space_detailed
+echo.
+
+echo [TEST 6] Network Connectivity
+echo Testing DNS resolution...
+nslookup rainmeterui.com >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo [PASS] DNS working
+) else (
+    echo [FAIL] DNS not working
+)
+echo.
+
+echo Testing HTTP connection...
+python -c "import urllib.request; urllib.request.urlopen('https://www.google.com', timeout=5); print('[PASS] HTTP connection working')" 2>nul
+if %ERRORLEVEL% NEQ 0 echo [FAIL] HTTP connection failed
+echo.
+
+echo [TEST 7] Write Permissions
+set "TEST_FILE=.axiom_test_%RANDOM%.tmp"
+echo test > "%TEST_FILE%" 2>nul
+if exist "%TEST_FILE%" (
+    del "%TEST_FILE%"
+    echo [PASS] Write permissions OK
+) else (
+    echo [FAIL] No write permissions
+)
+echo.
+
+echo ========================================================================
+echo Diagnostics complete
+echo ========================================================================
+call :log "INFO" "Diagnostics completed"
+pause
+exit /b 0
+
+REM ========== HELPER FUNCTIONS ==========
+
+:log
+set "LEVEL=%~1"
+set "MESSAGE=%~2"
+echo [%date% %time%] [%LEVEL%] %MESSAGE% >> "%LOG_FILE%"
+exit /b 0
+
+:check_disk_space
+for /f "tokens=3" %%a in ('dir /-c ^| find "bytes free"') do set FREE_SPACE=%%a
+set /a FREE_GB=%FREE_SPACE:~0,-9%
+if %FREE_GB% LSS 5 (
+    exit /b 1
+)
+exit /b 0
+
+:check_disk_space_detailed
+for /f "tokens=3" %%a in ('dir /-c ^| find "bytes free"') do set FREE_SPACE=%%a
+set /a FREE_GB=%FREE_SPACE:~0,-9%
+echo Available disk space: %FREE_GB% GB
+if %FREE_GB% LSS 5 (
+    echo [WARN] Less than 5 GB available
+) else (
+    echo [OK] Sufficient disk space
+)
+exit /b 0
+
+:calculate_duration
+set "START=%~1"
+set "END=%~2"
+
+REM Convert times to seconds
+for /f "tokens=1-3 delims=:." %%a in ("%START%") do (
+    set /a "START_SEC=(1%%a-100)*3600 + (1%%b-100)*60 + (1%%c-100)"
+)
+for /f "tokens=1-3 delims=:." %%a in ("%END%") do (
+    set /a "END_SEC=(1%%a-100)*3600 + (1%%b-100)*60 + (1%%c-100)"
+)
+
+REM Handle day rollover
+if %END_SEC% LSS %START_SEC% set /a END_SEC+=86400
+
+set /a "DIFF_SEC=END_SEC-START_SEC"
+set /a "HOURS=DIFF_SEC/3600"
+set /a "MINUTES=(DIFF_SEC%%3600)/60"
+set /a "SECONDS=DIFF_SEC%%60"
+
+if %HOURS% LSS 10 set "HOURS=0%HOURS%"
+if %MINUTES% LSS 10 set "MINUTES=0%MINUTES%"
+if %SECONDS% LSS 10 set "SECONDS=0%SECONDS%"
+
+set "DURATION=%HOURS%:%MINUTES%:%SECONDS%"
+exit /b 0
+
+REM End of script
